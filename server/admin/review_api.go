@@ -38,8 +38,8 @@ type VolumeHit struct {
 	IssueCount int    `json:"issue_count"`
 	CoverURL   string `json:"cover_url"`
 }
-
-// RegisterAPI mounts the iPad review deck's JSON routes. Public like the rest
+// RegisterAPI mounts the iPad review deck's JSON routes; the global
+// RequireAuth middleware covers them.
 // of the app API: deliberately not behind requireAuth.
 func (a *Admin) RegisterAPI(mux *http.ServeMux) {
 	mux.HandleFunc("GET /review", a.apiReviewList)

@@ -34,6 +34,12 @@ type Server struct {
 
 	// PushSecret gates /devices; "" means push is off and they 404.
 	PushSecret string
+
+	// Password (Basic) and APIKey (Bearer) gate every endpoint but /healthz;
+	// AuthOff (GUTTER_AUTH=off) disables the gate.
+	Password string
+	APIKey   string
+	AuthOff  bool
 	Notifier   *notify.Notifier
 
 	// lastPageServed is the unix-nano time the reader last served a comic page;
@@ -174,7 +180,11 @@ func (s *Server) NewRouter() http.Handler {
 		s.Admin.Register(mux)
 		s.Admin.RegisterAPI(mux)
 	}
-	handler := corsMiddleware(mux)
+	var handler http.Handler = mux
+	if !s.AuthOff {
+		handler = RequireAuth(handler, s.Password, s.APIKey)
+	}
+	handler = corsMiddleware(handler)
 	if s.Admin != nil && s.Admin.RequestLog != nil {
 		handler = s.Admin.RequestLog.Middleware(handler)
 	}
@@ -185,7 +195,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Device-ID")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Device-ID, Authorization")
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
 			return

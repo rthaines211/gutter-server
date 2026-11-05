@@ -71,6 +71,7 @@ func main() {
 	srv := server.NewServer(cfg.ComicDirs, db, cache.NewLRU(cfg.CacheMaxItems))
 	srv.CoverDir = cfg.CoverDir
 	srv.BubblesDir = cfg.BubblesDir
+	srv.Password, srv.APIKey, srv.AuthOff = cfg.Password, cfg.APIKey, cfg.AuthOff
 
 	// One shared client so enrichment and live matching draw on the same
 	// 180/hr budget — two limiters would overrun ComicVine's real limit.

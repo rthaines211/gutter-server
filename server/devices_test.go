@@ -12,7 +12,7 @@ import (
 func devicesServer(t *testing.T, secret string) *Server {
 	t.Helper()
 	st := newIntegrationTestStore(t)
-	return &Server{Store: st, PushSecret: secret,
+	return &Server{Store: st, PushSecret: secret, AuthOff: true,
 		Notifier: &notify.Notifier{Store: st, DevicesPath: t.TempDir() + "/push_devices.json"}}
 }
 

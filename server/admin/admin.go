@@ -237,7 +237,7 @@ func New(st *store.Store, c *cache.LRU, comicDirs []string, coverDir string, dbP
 // Register mounts the admin routes onto the given mux.
 func (a *Admin) Register(root *http.ServeMux) {
 	mux := http.NewServeMux()
-	root.Handle("/_admin/", a.requireAuth(mux))
+	root.Handle("/_admin/", mux)
 	staticSub, _ := fs.Sub(staticFS, "static")
 	mux.Handle("GET /_admin/static/", http.StripPrefix("/_admin/static/", http.FileServer(http.FS(staticSub))))
 	mux.HandleFunc("GET /_admin/library/{id}", a.handleSeries)
