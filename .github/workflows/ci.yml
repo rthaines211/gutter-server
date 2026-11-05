@@ -19,6 +19,46 @@ jobs:
           go-version: "1.26"
       - run: go test ./...
 
+  # Builds the image and runs it the way the README does: catches a broken
+  # Dockerfile, entrypoint or auth before a tag ships it.
+  smoke:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: gutter-smoke
+      - name: Run and probe
+        run: |
+          set -eu
+          mkdir -p "$RUNNER_TEMP/lib/Smoke Series"
+          : > "$RUNNER_TEMP/lib/Smoke Series/Smoke Series 001.cbz"  # zero-byte; the scanner logs and skips it
+          docker run -d --name g -e GUTTER_PASSWORD=smoke-pass -p 8081:8081 \
+            -v "$RUNNER_TEMP/lib:/comics:ro" gutter-smoke
+          for i in $(seq 30); do
+            curl -fsS -o /dev/null http://127.0.0.1:8081/healthz && break
+            [ "$i" = 30 ] && { echo "healthz never came up"; exit 1; }
+            sleep 2
+          done
+          code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
+          [ "$(code http://127.0.0.1:8081/healthz)" = 200 ]
+          [ "$(code http://127.0.0.1:8081/library)" = 401 ]
+          [ "$(code -u x:smoke-pass http://127.0.0.1:8081/library)" = 200 ]
+      - name: Refuses to start without a password
+        run: |
+          if timeout 60 docker run --rm gutter-smoke; then
+            echo "started without GUTTER_PASSWORD"; exit 1
+          fi
+      - name: Container logs
+        if: failure()
+        run: docker logs g || true
+
   image:
     needs: test
     if: startsWith(github.ref, 'refs/tags/v')
