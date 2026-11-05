@@ -9,4 +9,4 @@ services:
       # GUTTER_COMICVINE_KEY: ""          # see docs/CONFIG.md, Metadata
     volumes:
       - ./data:/data
-      - /path/to/your/comics:/comics:ro   # remove :ro and set GUTTER_WRITEBACK=true to let Gutter write metadata into files
+      - /path/to/your/comics:/comics:ro   # remove :ro to let Gutter write metadata into files (GUTTER_WRITEBACK=false keeps it off)

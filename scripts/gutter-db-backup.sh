@@ -4,7 +4,9 @@
 #
 # For a DB on a Docker named volume (e.g. because SQLite WAL corrupts over some
 # bind mounts), out of reach of host-level backups. This dumps a consistent copy
-# to OUT_DIR on the host. Settings (env): VOLUME (default gutter-db), DB_FILE
+# to OUT_DIR on the host. For the shipped compose.yaml (./data bind mount), run
+# from the compose dir:  VOLUME=$PWD/data scripts/gutter-db-backup.sh
+# (Docker accepts a host path for -v). Settings (env): VOLUME (default gutter-db), DB_FILE
 # (default gutter.db), STACK_DIR (default $HOME/gutter), OUT_DIR, NAME, KEEP.
 #
 # Uses sqlite3's online .backup API, not cp: it takes the right locks, so it is
@@ -27,6 +29,7 @@ docker run --rm \
   -v "$VOLUME":/db:ro \
   -v "$OUT_DIR":/out \
   alpine:3 sh -c "
+    [ -f /db/$DB_FILE ] || { echo \"ERROR: /db/$DB_FILE not found in VOLUME=$VOLUME (set VOLUME to the volume name or the host data dir)\" >&2; exit 1; } &&
     apk add -q --no-cache sqlite &&
     sqlite3 /db/$DB_FILE \".backup /out/$NAME-$STAMP.db\" &&
     r=\$(sqlite3 /out/$NAME-$STAMP.db 'PRAGMA integrity_check;' | head -1) &&

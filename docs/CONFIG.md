@@ -15,12 +15,12 @@ password) or `Bearer <GUTTER_API_KEY>`. Only `GET /healthz` is open.
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `GUTTER_PASSWORD` | none | Password for every endpoint. Required unless `GUTTER_AUTH=off`. |
+| `GUTTER_PASSWORD` | none | Password for every endpoint. Required unless `GUTTER_AUTH=off`. `change-me` (the compose placeholder) is refused. |
 | `GUTTER_API_KEY` | none | Optional bearer token for scripts. |
 | `GUTTER_AUTH` | unset | `off` disables authentication. Only for a trusted private network. |
 | `GUTTER_COMICVINE_KEY` | none | ComicVine API key. Adds live lookups. |
 | `GUTTER_METRON_USER`, `GUTTER_METRON_PASS` | none | Metron account. Adds a fallback metadata source. |
-| `GUTTER_WRITEBACK` | on | `false` turns off writing metadata into your files. |
+| `GUTTER_WRITEBACK` | on if the library is writable | `true` or `false` overrides `writeback_disabled`. |
 | `GUTTER_SCAN_INTERVAL` | `30m` | How often to rescan. `off` means manual scans only. |
 
 ## Config file keys
@@ -58,11 +58,12 @@ only add to it. Gutter does not ship a dump.
 
 ## Letting Gutter write to your files
 
-By default the library is mounted read-only (`:ro` in `compose.yaml`) and a
-read-only mount turns writeback off automatically. To allow it, remove `:ro`
-from the comics volume and set `GUTTER_WRITEBACK=true`. Gutter then writes
-matched metadata into each file's ComicInfo.xml, and may convert CBR files to
-CBZ when it does. Back up your library first.
+The library is mounted read-only (`:ro` in `compose.yaml`) and a read-only
+mount keeps writeback off. Removing `:ro` is the opt-in: on a writable mount,
+writeback is on. `GUTTER_WRITEBACK=false` keeps it off even on a writable
+mount. Gutter then writes matched metadata into each file's ComicInfo.xml, and
+may convert CBR files to CBZ when it does. It only writes for series matched
+against your own `localcv` dump. Back up your library first.
 
 ## Upgrading
 
@@ -75,5 +76,13 @@ docker compose pull && docker compose up -d
 Everything Gutter keeps is in the `/data` directory (`./data` in the compose
 file). Stop the container before copying it (`docker compose stop`), and never
 open the live database from the host: SQLite in WAL mode can be corrupted that
-way. `scripts/gutter-db-backup.sh` takes a consistent snapshot of a running
-server; read its header for the settings it expects.
+way.
+
+To snapshot a running server, run from the compose directory:
+
+```sh
+VOLUME=$PWD/data scripts/gutter-db-backup.sh
+```
+
+Snapshots land in `data/db-backups/`. The script fails if it can't find the
+database. See its header for the other settings (`DB_FILE`, `OUT_DIR`, `KEEP`).

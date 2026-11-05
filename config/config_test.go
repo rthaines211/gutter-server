@@ -370,6 +370,9 @@ func TestValidate(t *testing.T) {
 	if err := (&Config{Password: "x"}).Validate(); err != nil {
 		t.Fatal(err)
 	}
+	if err := (&Config{Password: "change-me"}).Validate(); err == nil || !strings.Contains(err.Error(), "change-me") {
+		t.Fatalf("placeholder password: %v", err)
+	}
 	t.Setenv("GUTTER_AUTH", "off")
 	cfg, _ := Load(filepath.Join(t.TempDir(), "c.yaml"))
 	if !cfg.AuthOff || cfg.Validate() != nil {
@@ -389,5 +392,17 @@ func TestSaveCreatesMissingFile0600(t *testing.T) {
 	st, err := os.Stat(path)
 	if err != nil || st.Mode().Perm() != 0o600 {
 		t.Fatalf("stat: %v %v", st, err)
+	}
+}
+
+func TestWritebackEnvAppliesBothWays(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "c.yaml")
+	os.WriteFile(path, []byte("writeback_disabled: true\n"), 0o600)
+	for env, want := range map[string]bool{"": true, "junk": true, "true": false, "false": true} {
+		t.Setenv("GUTTER_WRITEBACK", env)
+		cfg, err := Load(path)
+		if err != nil || cfg.WritebackDisabled != want {
+			t.Fatalf("env %q: disabled=%v want %v (%v)", env, cfg.WritebackDisabled, want, err)
+		}
 	}
 }

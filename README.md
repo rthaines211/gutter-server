@@ -8,7 +8,8 @@ progress.
 ## Quick start
 
 1. Download [`compose.yaml`](compose.yaml).
-2. Edit it: set the comics path (`/path/to/your/comics`) and `GUTTER_PASSWORD`.
+2. Edit it: set the comics path (`/path/to/your/comics`) and `GUTTER_PASSWORD`
+   (the server refuses to start with the placeholder `change-me`).
 3. Start it:
 
    ```sh

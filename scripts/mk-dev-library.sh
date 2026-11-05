@@ -5,7 +5,7 @@
 # hardlink to ONE tiny valid template .cbz. Zero real archive opens, ~0 bytes.
 #
 # Why: the dev instance (config.test.yaml, port 8082) must share NOTHING with
-# the production container (port 8081). Pointing comic_dirs at /Volumes/Media
+# the production container (port 8081). Pointing comic_dirs at the real library
 # meant dev scans hammered the same USB drive that wedges the container, and
 # organize/rename/writeback acted on real comics. This fixture severs that.
 #
@@ -17,10 +17,9 @@ DEV_LIB="${DEV_LIB:-$REPO_DIR/testdata/dev-library}"
 TEMPLATE="$DEV_LIB/.template.cbz"
 
 # Real library roots (source of structure only — never written to, never opened).
-REAL_ROOTS=(
-  "/Volumes/Media/comics/Comic Continuum"
-  "/Volumes/Media/comics/Timeless Tales"
-)
+# SRC_LIBRARY: colon-separated list of library root dirs, e.g. SRC_LIBRARY=/data/comics/A:/data/comics/B
+[[ -n "${SRC_LIBRARY:-}" ]] || { echo "usage: SRC_LIBRARY=/path/to/root[:/another/root] $0" >&2; exit 2; }
+IFS=: read -r -a REAL_ROOTS <<< "$SRC_LIBRARY"
 
 echo "==> Dev library: $DEV_LIB"
 mkdir -p "$DEV_LIB"
@@ -86,9 +85,9 @@ done
 echo "==> Linked $linked new archive(s)"
 
 # --- 3. Safety assertion: the dev config must not reference the real library.
-# Strip comments first — only a live config value pointing at /Volumes counts.
-if grep -v '^[[:space:]]*#' "$REPO_DIR/config.test.yaml" 2>/dev/null | grep -q '/Volumes/Media'; then
-  echo "!! WARNING: config.test.yaml still references /Volumes/Media — dev is NOT isolated." >&2
+# Strip comments first — only a live config value pointing at the source library counts.
+if grep -v '^[[:space:]]*#' "$REPO_DIR/config.test.yaml" 2>/dev/null | grep -qF "${REAL_ROOTS[0]}"; then
+  echo "!! WARNING: config.test.yaml still references the source library — dev is NOT isolated." >&2
   exit 1
 fi
 echo "==> OK. Point config.test.yaml comic_dirs at: $DEV_LIB/<root>"

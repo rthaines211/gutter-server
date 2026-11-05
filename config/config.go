@@ -143,8 +143,8 @@ func Load(path string) (*Config, error) {
 		}
 	}
 	cfg.AuthOff = os.Getenv("GUTTER_AUTH") == "off"
-	if v, err := strconv.ParseBool(os.Getenv("GUTTER_WRITEBACK")); err == nil && !v {
-		cfg.WritebackDisabled = true
+	if v, err := strconv.ParseBool(os.Getenv("GUTTER_WRITEBACK")); err == nil {
+		cfg.WritebackDisabled = !v // applies both ways; unset/unparsable leaves the file value
 	}
 	return cfg, nil
 }
@@ -153,6 +153,9 @@ func Load(path string) (*Config, error) {
 func (c *Config) Validate() error {
 	if c.Password == "" && !c.AuthOff {
 		return errors.New("GUTTER_PASSWORD is required (set it, or GUTTER_AUTH=off to run without auth)")
+	}
+	if c.Password == "change-me" && !c.AuthOff {
+		return errors.New("GUTTER_PASSWORD is still the compose.yaml placeholder \"change-me\": set a real password")
 	}
 	return nil
 }
