@@ -126,6 +126,7 @@ type PageData struct {
 	SeriesCount   int
 	EndpointCount int
 	ReviewCount   int
+	MatchEnabled  bool
 	Uptime        string
 	Version       string
 	Content       interface{}
@@ -294,6 +295,7 @@ func (a *Admin) baseData(activePage string) PageData {
 		SeriesCount:   len(allSeries),
 		EndpointCount: a.RouteCount,
 		ReviewCount:   a.reviewCount(),
+		MatchEnabled:  a.Match != nil,
 		Uptime:        formatDuration(time.Since(a.StartedAt)),
 		Version:       "0.4.2",
 	}

@@ -35,6 +35,7 @@
           {{icon "library" 18}} <span style="flex:1">Library</span>
           <span class="count">{{.SeriesCount}}</span>
         </a>
+        {{if .MatchEnabled}}
         <a href="/_admin/match" class="nav-item {{if eq .ActivePage "match"}}active{{end}}">
           {{icon "check" 18}} <span style="flex:1">Matching</span>
           {{if .ReviewCount}}<span class="count count-warn">{{.ReviewCount}}</span>{{end}}
@@ -42,6 +43,7 @@
         <a href="/_admin/organize" class="nav-item {{if eq .ActivePage "organize"}}active{{end}}">
           {{icon "folder" 18}} <span style="flex:1">Organize</span>
         </a>
+        {{end}}
         <a href="/_admin/activity" class="nav-item {{if eq .ActivePage "activity"}}active{{end}}">
           {{icon "log" 18}} <span style="flex:1">Activity</span>
         </a>
@@ -106,6 +108,7 @@
       {{icon "library" 21}}
       <span>Library</span>
     </a>
+    {{if .MatchEnabled}}
     <a href="/_admin/match" class="tab-item {{if eq .ActivePage "match"}}active{{end}}">
       {{icon "check" 21}}
       <span>Matching</span>
@@ -114,6 +117,7 @@
       {{icon "folder" 21}}
       <span>Organize</span>
     </a>
+    {{end}}
   </nav>
 
 </div>

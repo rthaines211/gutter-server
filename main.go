@@ -191,6 +191,10 @@ func main() {
 	adm.Config = cfg
 	adm.Match = matchRunner
 
+	if !cfg.WritebackDisabled && !writeback.Writable(cfg.ComicDirs) {
+		cfg.WritebackDisabled = true
+		log.Printf("writeback: off (library is read-only)")
+	}
 	if len(cfg.ComicDirs) == 0 {
 		log.Printf("writeback: worker not started (no comic_dirs configured)")
 	} else if cfg.WritebackDisabled {

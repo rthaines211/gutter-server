@@ -4,9 +4,9 @@ comic_dirs:
 cache_max_items: 500
 db_path: comic-reader.db
 
-# Path to the offline ComicVine dump used for metadata matching. Read-only.
-# Matching is disabled when this is unset.
-localcv_db_path: localcv.db
+# Matching needs your own ComicVine dump. Metron, GCD and comicvine_api_key only add to it.
+# Path to the offline ComicVine dump. Read-only. Matching is disabled when unset.
+localcv_db_path: ""
 
 # Optional: the Grand Comics Database dump (gcd.db, ~6 GB, read-only). Used only
 # for folders ComicVine can't pin, and in the console's volume search. Unset = off.
@@ -27,19 +27,8 @@ metron_pass: ""
 # while the production instance holds the same library. Default false.
 writeback_disabled: false
 
-# Bubble-zoom sidecars written by hostjob/bubbles on the macOS host. Container view of
-# /Volumes/Media/comics/.bubbles. Leave empty to disable the /bubbles endpoints.
-bubbles_dir: /media/Comics/.bubbles
+bubbles_dir: ""
 
-# Native iOS push notifications (new books ready, items need review, failures).
-# Leave the whole block out to disable push. See docs/DEPLOY.md "Push notifications".
-# push:
-#   key_path: AuthKey_XXXXXXXXXX.p8  # relative to this file's directory
-#   key_id: XXXXXXXXXX
-#   team_id: XXXXXXXXXX
-#   bundle_id: com.example.reader
-#   register_secret: ""  # openssl rand -hex 32; also via PUSH_REGISTER_SECRET
-
-# Password for the /_admin console (HTTP Basic auth, any username). Leave empty
-# or remove the line to turn auth off.
-# admin_password: ""
+# Password for every endpoint (HTTP Basic, any username). Required unless
+# GUTTER_AUTH=off. Can also be set with GUTTER_PASSWORD.
+# password: ""
