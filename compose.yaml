@@ -1,0 +1,12 @@
+services:
+  gutter:
+    image: ghcr.io/rthaines211/gutter-server:latest
+    restart: unless-stopped
+    ports: ["8081:8081"]
+    environment:
+      GUTTER_PASSWORD: change-me          # required
+      # GUTTER_API_KEY: ""                # optional, for scripts (Authorization: Bearer)
+      # GUTTER_COMICVINE_KEY: ""          # see docs/CONFIG.md, Metadata
+    volumes:
+      - ./data:/data
+      - /path/to/your/comics:/comics:ro   # remove :ro and set GUTTER_WRITEBACK=true to let Gutter write metadata into files
