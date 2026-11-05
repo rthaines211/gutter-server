@@ -38,9 +38,10 @@ type Config struct {
 
 	// ponytail: one flag, not a general read-only mode. The writeback worker is
 	// the only file mutator that starts on its own; organize and the tagger both
-	// need a deliberate trigger. Set on the native test instance so it can never
-	// write into the real library while production holds the same files.
-	WritebackDisabled bool `yaml:"writeback_disabled,omitempty"`
+	// need a deliberate trigger. Defaults to true (off): writing into the
+	// library is opt-in via GUTTER_WRITEBACK=true or writeback_disabled: false.
+	// No omitempty, so a saved false survives the true default.
+	WritebackDisabled bool `yaml:"writeback_disabled"`
 
 	// AutoPipeline runs match → confirm → enrich → writeback → organize on
 	// the series each scheduled scan found new or changed. Off by default:
@@ -59,6 +60,9 @@ type Config struct {
 
 	mu   sync.RWMutex
 	path string
+	// fileVals undoes env overrides, keyed by env var: Save applies them to
+	// the copy it writes so env values (secrets included) never reach the file.
+	fileVals map[string]func(*Config)
 }
 
 // PushConfig is the APNs token-auth key plus the shared secret the app sends
@@ -106,7 +110,9 @@ func Load(path string) (*Config, error) {
 		CBRCacheMaxGB:       2,
 		TaggerPauseBetweenS: 30,
 		TaggerMinPages:      60,
+		WritebackDisabled:   true, // set before Unmarshal: yaml.v3 only overwrites keys present
 		path:                path,
+		fileVals:            map[string]func(*Config){},
 	}
 	data, err := os.ReadFile(path)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
@@ -128,22 +134,26 @@ func Load(path string) (*Config, error) {
 	if len(cfg.ComicDirs) == 0 {
 		cfg.ComicDirs = []string{"/comics"}
 	}
-	for env, dst := range map[string]*string{
-		"GUTTER_PASSWORD":             &cfg.Password,
-		"GUTTER_API_KEY":              &cfg.APIKey,
-		"GUTTER_COMICVINE_KEY":        &cfg.ComicVineAPIKey,
-		"GUTTER_METRON_USER":          &cfg.MetronUser,
-		"GUTTER_METRON_PASS":          &cfg.MetronPass,
-		"GUTTER_SCAN_INTERVAL":        &cfg.ScanInterval,
-		"GUTTER_MYLAR_URL":            &cfg.MylarURL,
-		"GUTTER_PUSH_REGISTER_SECRET": &cfg.Push.RegisterSecret,
+	for env, field := range map[string]func(*Config) *string{
+		"GUTTER_PASSWORD":             func(c *Config) *string { return &c.Password },
+		"GUTTER_API_KEY":              func(c *Config) *string { return &c.APIKey },
+		"GUTTER_COMICVINE_KEY":        func(c *Config) *string { return &c.ComicVineAPIKey },
+		"GUTTER_METRON_USER":          func(c *Config) *string { return &c.MetronUser },
+		"GUTTER_METRON_PASS":          func(c *Config) *string { return &c.MetronPass },
+		"GUTTER_SCAN_INTERVAL":        func(c *Config) *string { return &c.ScanInterval },
+		"GUTTER_MYLAR_URL":            func(c *Config) *string { return &c.MylarURL },
+		"GUTTER_PUSH_REGISTER_SECRET": func(c *Config) *string { return &c.Push.RegisterSecret },
 	} {
 		if v := os.Getenv(env); v != "" {
-			*dst = v
+			fileVal := *field(cfg)
+			cfg.fileVals[env] = func(c *Config) { *field(c) = fileVal }
+			*field(cfg) = v
 		}
 	}
 	cfg.AuthOff = os.Getenv("GUTTER_AUTH") == "off"
 	if v, err := strconv.ParseBool(os.Getenv("GUTTER_WRITEBACK")); err == nil {
+		fileVal := cfg.WritebackDisabled
+		cfg.fileVals["GUTTER_WRITEBACK"] = func(c *Config) { c.WritebackDisabled = fileVal }
 		cfg.WritebackDisabled = !v // applies both ways; unset/unparsable leaves the file value
 	}
 	return cfg, nil
@@ -164,13 +174,30 @@ func (c *Config) Save() error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	// Marshal the Config itself so a new field can't be forgotten here
-	// (bubbles_dir was); mu and path are unexported and skipped.
+	// (bubbles_dir was); mu and path are unexported and skipped. The round
+	// trip makes a lock-free copy to put the file's values back into, so env
+	// overrides (secrets, scan interval, writeback) are never persisted.
 	data, err := yaml.Marshal(c)
 	if err != nil {
 		return fmt.Errorf("marshaling config: %w", err)
 	}
-	// ponytail: env secrets can land in the saved file; 0600 is the guard, split file/env state if that ever matters
-	return os.WriteFile(c.path, data, 0600)
+	var out Config
+	if err := yaml.Unmarshal(data, &out); err != nil {
+		return fmt.Errorf("copying config: %w", err)
+	}
+	for _, restore := range c.fileVals {
+		restore(&out)
+	}
+	if data, err = yaml.Marshal(&out); err != nil {
+		return fmt.Errorf("marshaling config: %w", err)
+	}
+	if err := os.MkdirAll(filepath.Dir(c.path), 0o755); err != nil {
+		return fmt.Errorf("creating config dir: %w", err)
+	}
+	if err := os.WriteFile(c.path, data, 0o600); err != nil {
+		return err
+	}
+	return os.Chmod(c.path, 0o600) // WriteFile keeps an existing file's mode
 }
 
 func (c *Config) AddDir(dir string) error {
@@ -206,6 +233,8 @@ func (c *Config) RemoveDir(dir string) error {
 func (c *Config) SetScanInterval(interval string) error {
 	c.mu.Lock()
 	c.ScanInterval = interval
+	// Persist the console's choice; GUTTER_SCAN_INTERVAL still wins at next start.
+	delete(c.fileVals, "GUTTER_SCAN_INTERVAL")
 	c.mu.Unlock()
 	return c.Save()
 }
