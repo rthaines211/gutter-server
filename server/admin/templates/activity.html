@@ -1,0 +1,36 @@
+{{define "content"}}
+{{$d := .Content}}
+<div class="page-head">
+  <div class="page-head-titles">
+    <span class="page-sub">Automatic pipeline runs · last 90 days</span>
+    <span class="page-title">Activity</span>
+  </div>
+</div>
+
+{{if not $d.Runs}}
+<div class="card" style="padding:24px;text-align:center;color:var(--text-tertiary)">
+  No pipeline runs yet. Runs appear after a scheduled scan finds new or changed series
+  (requires <span class="mono">auto_pipeline: true</span>).
+</div>
+{{end}}
+
+{{range $d.Runs}}
+<details class="card-flush" style="margin-bottom:10px" {{if .Attention}}open{{end}}>
+  <summary style="padding:12px 16px;cursor:pointer;display:flex;gap:12px;align-items:center">
+    <span class="mono">{{.When}}</span>
+    <span>{{.SeriesCount}} series · {{len .Events}} events · {{.Duration}}</span>
+    {{if .SkippedReason}}<span style="color:var(--amber-text)">skipped: {{.SkippedReason}}</span>{{end}}
+    {{if .Attention}}<span class="count count-warn">needs a look</span>{{end}}
+  </summary>
+  <div style="padding:6px 16px 14px">
+    {{range .Events}}
+    <div class="log-line log-line-sm">
+      <span class="mono" style="min-width:120px;display:inline-block">{{.Kind}}</span>
+      <a class="card-link" href="/_admin/match/series/{{.SeriesID}}">{{.SeriesName}}</a>
+      <span style="color:var(--text-secondary)">{{.Detail}}</span>
+    </div>
+    {{end}}
+  </div>
+</details>
+{{end}}
+{{end}}

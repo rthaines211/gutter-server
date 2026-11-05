@@ -1,0 +1,45 @@
+port: 8080
+comic_dirs:
+  - /comics
+cache_max_items: 500
+db_path: comic-reader.db
+
+# Path to the offline ComicVine dump used for metadata matching. Read-only.
+# Matching is disabled when this is unset.
+localcv_db_path: localcv.db
+
+# Optional: the Grand Comics Database dump (gcd.db, ~6 GB, read-only). Used only
+# for folders ComicVine can't pin, and in the console's volume search. Unset = off.
+gcd_db_path: ""
+
+# Free key from comicvine.gamespot.com/api. Enables live enrichment and the
+# match run's live fill for issues newer than the offline dump (Feb 2026).
+# Both share one 180/hr budget. Unset = offline matching only.
+comicvine_api_key: ""
+
+# Metron (metron.cloud) fallback metadata provider. Free account.
+# Used only where ComicVine (dump + live) can't match. Empty = disabled.
+metron_user: ""
+metron_pass: ""
+
+# Set true on a non-production instance sharing the same comic_dirs. Stops the
+# writeback worker from writing ComicInfo.xml into (and converting) real files
+# while the production instance holds the same library. Default false.
+writeback_disabled: false
+
+# Bubble-zoom sidecars written by hostjob/bubbles on the macOS host. Container view of
+# /Volumes/Media/comics/.bubbles. Leave empty to disable the /bubbles endpoints.
+bubbles_dir: /media/Comics/.bubbles
+
+# Native iOS push notifications (new books ready, items need review, failures).
+# Leave the whole block out to disable push. See docs/DEPLOY.md "Push notifications".
+# push:
+#   key_path: AuthKey_XXXXXXXXXX.p8  # relative to this file's directory
+#   key_id: XXXXXXXXXX
+#   team_id: XXXXXXXXXX
+#   bundle_id: com.example.reader
+#   register_secret: ""  # openssl rand -hex 32; also via PUSH_REGISTER_SECRET
+
+# Password for the /_admin console (HTTP Basic auth, any username). Leave empty
+# or remove the line to turn auth off.
+# admin_password: ""

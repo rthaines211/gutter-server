@@ -1,0 +1,47 @@
+{{define "content"}}
+{{$d := .Content}}
+
+<div class="page-head">
+  <div class="page-head-titles">
+    <span class="page-sub">{{$d.Total}} entries{{if $d.ActiveLevel}} · filtered to {{$d.ActiveLevel}}{{end}}</span>
+    <span class="page-title">Logs</span>
+  </div>
+  <div class="page-head-actions">
+    <div class="filter-pills">
+      <a href="/_admin/logs" class="filter-pill {{if eq $d.ActiveLevel ""}}active{{end}}">All</a>
+      <a href="/_admin/logs?level=INFO" class="filter-pill {{if eq $d.ActiveLevel "INFO"}}active{{end}}">INFO</a>
+      <a href="/_admin/logs?level=WARN" class="filter-pill {{if eq $d.ActiveLevel "WARN"}}active{{end}}">
+        <span class="filter-pill-dot" style="background:var(--amber)"></span>WARN
+      </a>
+      <a href="/_admin/logs?level=ERROR" class="filter-pill {{if eq $d.ActiveLevel "ERROR"}}active{{end}}">
+        <span class="filter-pill-dot" style="background:var(--red)"></span>ERROR
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="card-flush">
+  <div style="padding:12px 16px;border-bottom:var(--bw) solid var(--ink);background:var(--bg-2);display:flex;gap:8px;align-items:center">
+    {{icon "log" 16}}
+    <span class="mono" style="font-size:12px;font-weight:600">access.log</span>
+  </div>
+  <div class="no-scrollbar" style="padding:10px 14px;max-height:520px;overflow:auto">
+    {{if not $d.Lines}}
+    <div style="color:var(--text-tertiary);padding:24px 0;text-align:center;font-size:12.5px">
+      {{if $d.ActiveLevel}}
+        No {{$d.ActiveLevel}} entries. <a href="/_admin/logs" class="card-link">Show all</a>
+      {{else}}
+        No requests logged yet. Refresh the page after making some API calls.
+      {{end}}
+    </div>
+    {{end}}
+    {{range $d.Lines}}
+    <div class="log-line log-line-sm">
+      <span style="color:var(--text-disabled)">{{.Time}}</span>
+      <span style="color:{{.Color}};font-weight:700">{{.Level}}</span>
+      <span style="color:{{.Color}}">{{.Message}}</span>
+    </div>
+    {{end}}
+  </div>
+</div>
+{{end}}

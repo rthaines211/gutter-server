@@ -1,0 +1,199 @@
+{{define "content"}}
+{{$d := .Content}}
+
+{{if $d.Empty}}
+  <div class="card" style="text-align:center;padding:44px 20px;display:flex;flex-direction:column;align-items:center;gap:10px">
+    <span class="cap">Queue clear</span>
+    <span class="page-title" style="font-size:34px">Nothing left to review</span>
+    <span class="mono" style="font-size:11px;color:var(--text-tertiary)">
+      REVIEWED {{$d.Cursor}} SERIES · {{stateLabel $d.State}} IS EMPTY
+    </span>
+    <a class="btn btn-primary mt-12" href="/_admin/match">Back to queue</a>
+  </div>
+{{else}}
+{{$e := $d.Detail}}
+
+<!-- Review header: position, progress, exit -->
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <div class="flex-col" style="gap:6px;min-width:0">
+      <span class="page-sub">
+        Series {{$d.Position}} of {{$d.Total}} · {{stateLabel $d.State}}
+      </span>
+      <span class="page-title" style="font-size:34px">{{$e.Name}}</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      {{/* The review bar can only accept, skip or reject what the matcher
+           already found. Searching the dump, picking a different volume and
+           re-pinning a single file all live on the detail page, and a row that
+           matched nothing has nothing to accept — so without this link the
+           queue is a dead end for exactly the rows that need the most work. */}}
+      <a class="btn btn-sm" href="/_admin/match/series/{{pathescape $e.SeriesID}}">
+        {{icon "search" 16}} Search / pick volume
+      </a>
+      <a class="btn btn-sm btn-ghost" href="/_admin/match?state={{$d.State}}">Exit to queue</a>
+    </div>
+  </div>
+  <div class="progress-bar mt-12">
+    <div class="progress-fill progress-fill-accent" style="width:{{printf "%.1f" (pct $d.Position $d.Total)}}%"></div>
+  </div>
+</div>
+
+<!-- Local folder vs candidate volume -->
+<div class="page-grid-wide">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Local folder</span>
+      <span class="cap cap-right">On disk</span>
+    </div>
+    <div style="font-size:16px;font-weight:600">{{$e.FolderName}}</div>
+    <div class="mono truncate" style="color:var(--text-tertiary);font-size:11.5px;margin-top:2px">{{$e.FolderPath}}</div>
+    <div class="mt-10" style="display:flex;gap:6px;flex-wrap:wrap">
+      <span class="pill" style="background:{{stateColor $e.State}};color:#fff">{{stateLabel $e.State}}</span>
+      {{if $e.Method}}<span class="pill pill-gray">{{$e.Method}}</span>{{end}}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Candidate volume</span>
+      {{if $e.CVVolumeName}}<span class="mono" style="font-size:10px;color:var(--text-tertiary)">COMICVINE</span>{{end}}
+    </div>
+    {{if $e.CVVolumeName}}
+      <div style="font-size:16px;font-weight:600">{{$e.CVVolumeName}} ({{$e.CVStartYear}})</div>
+      <div style="color:var(--text-tertiary);margin-top:2px;font-size:13px">{{$e.CVPublisher}}</div>
+    {{else if $e.HasVolume}}
+      <p class="mono" style="color:var(--text-tertiary);font-size:12px">
+        Volume {{$e.VolumeID}} — no issue in this folder resolved against the dump.
+      </p>
+    {{else}}
+      <p class="mono" style="color:var(--text-tertiary);font-size:12px">No volume matched.</p>
+    {{end}}
+
+    {{if $e.PenaltyRows}}
+    <div class="divider"></div>
+    <div class="stat-label" style="margin-bottom:6px">Disagreements</div>
+    {{range $e.PenaltyRows}}
+    <div style="display:flex;gap:8px;align-items:baseline;padding:3px 0">
+      <span class="mono" style="font-size:9.5px;font-weight:700;letter-spacing:0.5px;color:var(--amber-text);flex:none;min-width:56px">{{.Field}}</span>
+      <span style="font-size:12.5px;color:var(--text-secondary)">{{.Message}}</span>
+    </div>
+    {{end}}
+    {{end}}
+  </div>
+</div>
+
+<!-- Verdict bar -->
+<div class="card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+  {{if gt $d.Cursor 0}}
+  <form id="prev-form" method="GET" action="/_admin/match/review">
+    <input type="hidden" name="state" value="{{$d.State}}"/>
+    <input type="hidden" name="i" value="{{sub $d.Cursor 1}}"/>
+    <button class="btn btn-sm btn-ghost" type="submit">← Previous</button>
+  </form>
+  {{end}}
+
+  {{/* Confirmable, not HasVolume: a collection folder has per-file volumes and
+       so no folder volume, but Apply still writes metadata from those. Gating
+       on HasVolume left the collection queue with only Skip and Don't match —
+       no way to action a row from the page the console links you to. */}}
+  {{if $e.Confirmable}}
+  <form id="confirm-form" method="POST" action="/_admin/match/confirm">
+    <input type="hidden" name="series_id" value="{{$e.SeriesID}}"/>
+    <input type="hidden" name="redirect" value="/_admin/match/review?state={{$d.State}}&i={{$d.Cursor}}"/>
+    <button class="btn btn-primary" type="submit">{{icon "check" 18}} {{if $e.HasVolume}}Confirm{{else}}Confirm as collection{{end}} <kbd class="mono" style="opacity:.7;margin-left:2px">C</kbd></button>
+  </form>
+  {{end}}
+
+  <form id="skip-form" method="POST" action="/_admin/match/review/skip">
+    <input type="hidden" name="state" value="{{$d.State}}"/>
+    <input type="hidden" name="i" value="{{$d.Cursor}}"/>
+    <button class="btn" type="submit">Skip <kbd class="mono" style="opacity:.7;margin-left:2px">S</kbd></button>
+  </form>
+
+  <form id="dontmatch-form" method="POST" action="/_admin/match/dont-match">
+    <input type="hidden" name="series_id" value="{{$e.SeriesID}}"/>
+    <input type="hidden" name="redirect" value="/_admin/match/review?state={{$d.State}}&i={{$d.Cursor}}"/>
+    <button class="btn btn-ghost" type="submit">Don't match <kbd class="mono" style="opacity:.7;margin-left:2px">X</kbd></button>
+  </form>
+
+  <span style="flex:1"></span>
+  <span class="mono" style="font-size:10.5px;color:var(--text-tertiary);letter-spacing:0.4px">
+    C CONFIRM · S SKIP · X DON'T MATCH · ← → NAVIGATE
+  </span>
+</div>
+
+<!-- Issue-by-issue cover comparison -->
+<div class="card-flush">
+  <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:var(--bw) solid var(--ink);background:var(--bg-2)">
+    <span class="mono" style="font-size:10.5px;font-weight:700;letter-spacing:0.9px;color:var(--text-secondary)">
+      ISSUES — {{len $e.Issues}}
+    </span>
+  </div>
+
+  {{if not $e.Issues}}
+  <div style="padding:28px;text-align:center">
+    <span class="mono" style="font-size:11px;color:var(--text-tertiary)">NO ISSUES FOUND FOR THIS SERIES</span>
+  </div>
+  {{else}}
+  <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+    {{range $e.VisibleIssues}}
+    <div style="display:flex;gap:14px;align-items:center;padding:10px;border:1px solid var(--border-hairline);border-radius:var(--r-sm);background:var(--bg-1);flex-wrap:wrap">
+      <div style="display:flex;gap:8px;flex:none">
+        <div style="text-align:center">
+          <img src="{{.LocalCoverURL}}" loading="lazy" alt=""
+               style="width:72px;height:108px;object-fit:cover;border-radius:4px;background:var(--bg-3);border:1.5px solid var(--ink);box-shadow:2px 2px 0 var(--ink)"/>
+          <div class="mono" style="font-size:9px;color:var(--text-tertiary);margin-top:5px;letter-spacing:0.4px">YOUR FILE</div>
+        </div>
+        <div style="text-align:center">
+          {{if .CVImageURL}}
+          <img src="{{.CVImageURL}}" loading="lazy" referrerpolicy="no-referrer" alt=""
+               style="width:72px;height:108px;object-fit:cover;border-radius:4px;background:var(--bg-3);border:1.5px solid var(--ink);box-shadow:2px 2px 0 var(--ink)"/>
+          {{else}}
+          <div style="width:72px;height:108px;border-radius:4px;background:var(--bg-2);border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;color:var(--text-disabled);font-size:20px">?</div>
+          {{end}}
+          <div class="mono" style="font-size:9px;color:var(--text-tertiary);margin-top:5px;letter-spacing:0.4px">COMICVINE</div>
+        </div>
+      </div>
+
+      <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:4px">
+        <span class="mono truncate" style="font-size:12px;font-weight:600">{{.Filename}}</span>
+        <span class="mono" style="font-size:10.5px;color:var(--text-tertiary)">
+          LOCAL #{{.LocalNumber}}{{if .HasCV}} · CV #{{.CVNumber}}{{end}}{{if .Method}} · {{.Method}}{{end}}
+        </span>
+        {{if .HasCV}}<span class="truncate" style="font-size:12.5px;color:var(--text-secondary)">{{.CVTitle}}</span>{{end}}
+      </div>
+    </div>
+    {{end}}
+  </div>
+
+  {{if not $e.ShowAll}}
+  <div style="padding:0 16px 16px">
+    <a class="btn btn-sm btn-ghost" href="/_admin/match/review?state={{$d.State}}&i={{$d.Cursor}}&all=1">
+      Show all {{len $e.Issues}} issues ({{$e.MoreCount}} more)
+    </a>
+  </div>
+  {{end}}
+  {{end}}
+</div>
+
+<script>
+document.addEventListener('keydown', function (ev) {
+  var t = ev.target;
+  var tag = t && t.tagName ? t.tagName.toLowerCase() : '';
+  if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+  if (ev.metaKey || ev.ctrlKey || ev.altKey || ev.shiftKey) return;
+
+  var formId = null;
+  if (ev.key === 'c' || ev.key === 'C') formId = 'confirm-form';
+  else if (ev.key === 's' || ev.key === 'S' || ev.key === 'ArrowRight') formId = 'skip-form';
+  else if (ev.key === 'x' || ev.key === 'X') formId = 'dontmatch-form';
+  else if (ev.key === 'ArrowLeft') formId = 'prev-form';
+  if (!formId) return;
+
+  var form = document.getElementById(formId);
+  if (form) form.submit();
+});
+</script>
+{{end}}
+{{end}}

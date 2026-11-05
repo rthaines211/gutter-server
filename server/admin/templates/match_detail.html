@@ -1,0 +1,254 @@
+{{define "content"}}
+{{$d := .Content}}
+
+<div class="page-head">
+  <div class="page-head-titles">
+    <span class="page-sub">{{stateLabel $d.State}}{{if $d.Method}} · {{$d.Method}}{{end}}</span>
+    <span class="page-title" style="font-size:34px">{{$d.FolderName}}</span>
+  </div>
+  <div class="page-head-actions">
+    <a class="btn btn-sm btn-ghost" href="/_admin/match">{{icon "chevron-left" 14}} Back to queue</a>
+  </div>
+</div>
+
+<!-- Local folder vs candidate volume -->
+<div class="page-grid-wide">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Local folder</span>
+      <span class="pill" style="background:{{stateColor $d.State}};color:#fff">{{stateLabel $d.State}}</span>
+    </div>
+    <div class="mono truncate" style="color:var(--text-secondary);font-size:11.5px">{{$d.FolderPath}}</div>
+    {{if $d.Method}}
+    <div class="mt-10"><span class="pill pill-gray">{{$d.Method}}</span></div>
+    {{end}}
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">{{if eq $d.Source "gcd"}}GCD series{{else}}ComicVine volume{{end}}</span>
+    </div>
+    {{if $d.CVVolumeName}}
+      <div style="font-size:16px;font-weight:600">{{$d.CVVolumeName}} ({{$d.CVStartYear}})</div>
+      <div style="color:var(--text-tertiary);margin-top:2px;font-size:13px">{{$d.CVPublisher}}</div>
+    {{else if $d.HasVolume}}
+      <p class="mono" style="color:var(--text-tertiary);font-size:12px">
+        Volume {{$d.VolumeID}} ({{$d.Source}}) — no issue in this folder resolved against the dump.
+      </p>
+    {{else}}
+      <p class="mono" style="color:var(--text-tertiary);font-size:12px">No volume matched.</p>
+    {{end}}
+
+    {{if and (ne $d.State "confirmed") (ne $d.State "collection")}}
+    <form method="POST" action="/_admin/match/mark-collection" class="mt-12">
+      <input type="hidden" name="series_id" value="{{$d.SeriesID}}"/>
+      <button class="btn btn-sm btn-ghost" type="submit"
+              title="Each file is its own trade volume; the folder has no single volume">
+        Not one series — mark as collection
+      </button>
+    </form>
+    {{end}}
+  </div>
+</div>
+
+<!-- Disagreements -->
+<div class="card">
+  <div class="card-header"><span class="card-title">Disagreements</span></div>
+  {{if $d.PenaltyRows}}
+    {{range $d.PenaltyRows}}
+    <div style="display:flex;gap:10px;align-items:baseline;padding:5px 0;border-top:1px solid var(--border-hairline)">
+      <span class="mono" style="font-size:9.5px;font-weight:700;letter-spacing:0.5px;color:var(--amber-text);flex:none;min-width:64px">{{.Field}}</span>
+      <span style="font-size:12.5px;color:var(--text-secondary)">{{.Message}}</span>
+    </div>
+    {{end}}
+  {{else}}
+    <span class="mono" style="font-size:10.5px;color:var(--text-disabled)">NONE</span>
+  {{end}}
+</div>
+
+<!-- Actions -->
+<div class="card" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+  {{if eq $d.State "confirmed"}}
+    <form method="POST" action="/_admin/match/unconfirm">
+      <input type="hidden" name="series_id" value="{{$d.SeriesID}}"/>
+      <input type="hidden" name="redirect" value="/_admin/match/series/{{pathescape $d.SeriesID}}"/>
+      <button class="btn" type="submit">Unconfirm</button>
+    </form>
+  {{else}}
+    {{if $d.Confirmable}}
+    <form method="POST" action="/_admin/match/confirm">
+      <input type="hidden" name="series_id" value="{{$d.SeriesID}}"/>
+      <input type="hidden" name="redirect" value="/_admin/match/series/{{pathescape $d.SeriesID}}"/>
+      <button class="btn btn-primary" type="submit">
+        {{icon "check" 18}} {{if $d.HasVolume}}Confirm{{else}}Confirm as collection{{end}}
+      </button>
+    </form>
+    {{end}}
+    <form method="POST" action="/_admin/match/dont-match">
+      <input type="hidden" name="series_id" value="{{$d.SeriesID}}"/>
+      <input type="hidden" name="redirect" value="/_admin/match/series/{{pathescape $d.SeriesID}}"/>
+      <button class="btn btn-ghost" type="submit">Don't match</button>
+    </form>
+  {{end}}
+</div>
+
+<!-- Find a volume -->
+{{if and $d.Searchable (ne $d.State "confirmed")}}
+<div class="card">
+  <div class="card-header"><span class="card-title">Find a volume</span></div>
+  <form method="GET" action="/_admin/match/series/{{pathescape $d.SeriesID}}" style="display:flex;gap:8px;flex-wrap:wrap">
+    <input class="config-input" type="text" name="q" value="{{$d.Query}}"
+           placeholder="volume name words, e.g. brubaker omnibus" style="flex:1;min-width:200px"/>
+    <button class="btn" type="submit">{{icon "search" 16}} Search dump</button>
+  </form>
+
+  {{if $d.Query}}
+    {{if $d.SearchResults}}
+    <div class="mt-12">
+      {{range $d.SearchResults}}
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--border-hairline);flex-wrap:wrap">
+        <div style="flex:1;min-width:160px">
+          <div style="font-size:13px;font-weight:600">{{.Name}} ({{.StartYear}})</div>
+          <div class="mono" style="font-size:10.5px;color:var(--text-tertiary);margin-top:1px">
+            {{.Publisher}} · {{.Count}} ISSUES · {{.Source}}
+          </div>
+        </div>
+        {{if .Current}}
+          <span class="cap">Current</span>
+        {{else}}
+        <form method="POST" action="/_admin/match/set-volume">
+          <input type="hidden" name="series_id" value="{{$d.SeriesID}}"/>
+          <input type="hidden" name="volume_id" value="{{.ID}}"/>
+          <input type="hidden" name="source" value="{{.Source}}"/>
+          <input type="hidden" name="redirect" value="/_admin/match/series/{{pathescape $d.SeriesID}}"/>
+          <button class="btn btn-sm" type="submit">Use this volume</button>
+        </form>
+        {{end}}
+      </div>
+      {{end}}
+    </div>
+    {{else}}
+    <p class="mono mt-12" style="color:var(--text-tertiary);font-size:12px">
+      No volume in the dump has all of those words.
+    </p>
+    {{end}}
+  {{end}}
+</div>
+{{end}}
+
+<!-- Volume options -->
+{{if gt (len $d.Volumes) 1}}
+<div class="card">
+  <div class="card-header"><span class="card-title">Volume options</span></div>
+  {{range $d.Volumes}}
+  <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--border-hairline);flex-wrap:wrap">
+    <div style="flex:1;min-width:160px">
+      <div style="font-size:13px;font-weight:600">{{.Name}} ({{.StartYear}})</div>
+      <div class="mono" style="font-size:10.5px;color:var(--text-tertiary);margin-top:1px">
+        {{.Publisher}} · {{.Count}} ISSUES
+      </div>
+    </div>
+    {{if .Current}}
+      <span class="cap">Current</span>
+    {{else if ne $d.State "confirmed"}}
+    <form method="POST" action="/_admin/match/set-volume">
+      <input type="hidden" name="series_id" value="{{$d.SeriesID}}"/>
+      <input type="hidden" name="volume_id" value="{{.ID}}"/>
+      <input type="hidden" name="source" value="{{.Source}}"/>
+      <input type="hidden" name="redirect" value="/_admin/match/series/{{pathescape $d.SeriesID}}"/>
+      <button class="btn btn-sm" type="submit">Use this volume</button>
+    </form>
+    {{end}}
+  </div>
+  {{end}}
+</div>
+{{end}}
+
+<!-- Issues -->
+<div class="card-flush">
+  <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:var(--bw) solid var(--ink);background:var(--bg-2)">
+    <span class="mono" style="font-size:10.5px;font-weight:700;letter-spacing:0.9px;color:var(--text-secondary)">
+      ISSUES — {{len $d.Issues}}
+    </span>
+  </div>
+
+  {{if not $d.Issues}}
+  <div style="padding:28px;text-align:center">
+    <span class="mono" style="font-size:11px;color:var(--text-tertiary)">NO ISSUES FOUND FOR THIS SERIES</span>
+  </div>
+  {{else}}
+  <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+    {{range $d.VisibleIssues}}
+    <div style="display:flex;gap:14px;align-items:flex-start;padding:10px;border:1px solid var(--border-hairline);border-radius:var(--r-sm);background:var(--bg-1);flex-wrap:wrap">
+      <div style="display:flex;gap:8px;flex:none">
+        <div style="text-align:center">
+          <img src="{{.LocalCoverURL}}" loading="lazy" alt=""
+               style="width:72px;height:108px;object-fit:cover;border-radius:4px;background:var(--bg-3);border:1.5px solid var(--ink);box-shadow:2px 2px 0 var(--ink)"/>
+          <div class="mono" style="font-size:9px;color:var(--text-tertiary);margin-top:5px;letter-spacing:0.4px">YOUR FILE</div>
+        </div>
+        <div style="text-align:center">
+          {{if .CVImageURL}}
+          <img src="{{.CVImageURL}}" loading="lazy" referrerpolicy="no-referrer" alt=""
+               style="width:72px;height:108px;object-fit:cover;border-radius:4px;background:var(--bg-3);border:1.5px solid var(--ink);box-shadow:2px 2px 0 var(--ink)"/>
+          {{else}}
+          <div style="width:72px;height:108px;border-radius:4px;background:var(--bg-2);border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;color:var(--text-disabled);font-size:20px">?</div>
+          {{end}}
+          <div class="mono" style="font-size:9px;color:var(--text-tertiary);margin-top:5px;letter-spacing:0.4px">COMICVINE</div>
+        </div>
+      </div>
+
+      <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:4px">
+        <span class="mono truncate" style="font-size:12px;font-weight:600">{{.Filename}}</span>
+        <span class="mono" style="font-size:10.5px;color:var(--text-tertiary)">
+          LOCAL #{{.LocalNumber}}{{if .HasCV}} · CV #{{.CVNumber}}{{end}}{{if .Method}} · {{.Method}}{{end}}
+        </span>
+        {{if .HasCV}}<span style="font-size:12.5px;color:var(--text-secondary)">{{.CVTitle}}</span>{{end}}
+        {{if .OtherVolume}}
+        <span class="pill pill-amber" style="align-self:flex-start;font-size:10px">{{.CVVolumeName}} ({{.CVVolumeYear}})</span>
+        {{end}}
+
+        {{if and $d.SearchResults (ne $d.State "confirmed")}}
+          {{/* Collection folders have no folder volume, so no precomputed
+               RepinID — pin this file into a volume from the search above
+               instead. */}}
+        <form method="POST" action="/_admin/match/repin" style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <input type="hidden" name="series_id" value="{{$d.SeriesID}}"/>
+          <input type="hidden" name="issue_id" value="{{.IssueID}}"/>
+          <input type="hidden" name="redirect" value="/_admin/match/series/{{pathescape $d.SeriesID}}"/>
+          {{/* The two dumps' id spaces overlap, so the pick must carry the
+               dump it came from. Encoding it in the option value keeps that
+               on the element the human actually selects — no script, and no
+               hidden field to drift out of sync. */}}
+          <select class="config-input" name="repin_volume" style="max-width:260px;height:30px">
+            {{range $d.SearchResults}}
+              <option value="{{.Source}}:{{.ID}}">{{.Name}} ({{.StartYear}}){{if ne .Source "comicvine"}} [{{.Source}}]{{end}}</option>
+            {{end}}
+          </select>
+          <button class="btn btn-sm btn-ghost" type="submit">Re-pin #{{.LocalNumber}} here</button>
+        </form>
+        {{end}}
+
+        {{if and .RepinID (ne $d.State "confirmed")}}
+        <form method="POST" action="/_admin/match/repin" style="margin-top:4px">
+          <input type="hidden" name="series_id" value="{{$d.SeriesID}}"/>
+          <input type="hidden" name="issue_id" value="{{.IssueID}}"/>
+          <input type="hidden" name="upstream_id" value="{{.RepinID}}"/>
+          <input type="hidden" name="redirect" value="/_admin/match/series/{{pathescape $d.SeriesID}}"/>
+          <button class="btn btn-sm btn-ghost" type="submit">Re-pin to #{{.RepinNumber}}</button>
+        </form>
+        {{end}}
+      </div>
+    </div>
+    {{end}}
+  </div>
+
+  {{if not $d.ShowAll}}
+  <div style="padding:0 16px 16px">
+    <a class="btn btn-sm btn-ghost" href="/_admin/match/series/{{pathescape $d.SeriesID}}?all=1">
+      Show all {{len $d.Issues}} issues ({{$d.MoreCount}} more)
+    </a>
+  </div>
+  {{end}}
+  {{end}}
+</div>
+{{end}}

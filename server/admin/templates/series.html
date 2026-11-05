@@ -1,0 +1,142 @@
+{{define "content"}}
+{{$d := .Content}}
+
+<a href="/_admin/library" class="btn btn-sm btn-ghost" style="align-self:flex-start">
+  {{icon "chevron-left" 14}} Library
+</a>
+
+<!-- Hero -->
+<div class="card">
+  <div class="series-hero">
+    <div class="series-hero-cover" style="background:{{coverGradient $d.Name 0}}">
+      <div class="cover-fallback">
+        <span class="cover-fallback-letter" style="font-size:72px">{{slice $d.Name 0 1}}</span>
+      </div>
+      {{if $d.CoverURL}}<img src="{{$d.CoverURL}}" alt="{{$d.Name}}" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"/>{{end}}
+      <div class="cover-halftone"></div>
+    </div>
+
+    <div class="series-hero-meta">
+      {{if $d.Publisher}}<span class="cap" style="align-self:flex-start">{{$d.Publisher}}</span>{{end}}
+      <span class="mono" style="font-size:10px;font-weight:600;letter-spacing:0.8px;color:var(--text-tertiary)">
+        {{if $d.Year}}{{$d.Year}}{{else}}YEAR UNKNOWN{{end}} · {{$d.IssueCount}} ISSUES
+      </span>
+      <h1 class="series-title">{{$d.Name}}</h1>
+      {{if $d.Writer}}<div style="font-size:13px;color:var(--text-secondary)">by <strong style="color:var(--text-primary)">{{$d.Writer}}</strong></div>{{end}}
+      {{if $d.Genres}}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px">
+        {{range $d.Genres}}<span class="pill pill-gray" style="font-size:10.5px">{{.}}</span>{{end}}
+      </div>
+      {{end}}
+
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+        <div class="progress-bar" style="flex:1">
+          <div class="progress-fill {{if ge $d.Progress 100.0}}progress-fill-green{{else}}progress-fill-accent{{end}}" style="width:{{printf "%.1f" $d.Progress}}%"></div>
+        </div>
+        <span class="mono" style="font-size:11px;font-weight:700;color:var(--text-tertiary);white-space:nowrap">
+          {{$d.ReadCount}}/{{$d.IssueCount}} READ
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="series-stats mt-14">
+    <div class="card-sm">
+      <div class="stat-label">Issues</div>
+      <div class="mt-10" style="font-family:var(--font-display);font-weight:var(--display-weight);font-size:26px;line-height:1;letter-spacing:var(--display-spacing)">{{$d.IssueCount}}</div>
+    </div>
+    <div class="card-sm">
+      <div class="stat-label">Read</div>
+      <div class="mt-10" style="font-family:var(--font-display);font-weight:var(--display-weight);font-size:26px;line-height:1;letter-spacing:var(--display-spacing)">{{$d.ReadCount}}</div>
+    </div>
+    <div class="card-sm">
+      <div class="stat-label">Year</div>
+      <div class="mt-10" style="font-family:var(--font-display);font-weight:var(--display-weight);font-size:26px;line-height:1;letter-spacing:var(--display-spacing)">{{if $d.Year}}{{$d.Year}}{{else}}—{{end}}</div>
+    </div>
+    <div class="card-sm">
+      <div class="stat-label">Publisher</div>
+      <div class="mt-10 truncate" style="font-size:13px;font-weight:600;color:var(--text-secondary)">{{if $d.Publisher}}{{$d.Publisher}}{{else}}—{{end}}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Folder -->
+<div class="card-sm" style="display:flex;align-items:center;gap:8px">
+  {{icon "folder" 16}}
+  <span class="mono truncate" style="flex:1;font-size:11.5px;color:var(--text-secondary)">{{$d.FolderPath}}</span>
+  <span class="pill pill-gray" style="font-size:10px">cbz · cbr</span>
+</div>
+
+<!-- Issues -->
+<div class="card-flush">
+  <div class="series-issues-header" style="padding:16px 18px;border-bottom:var(--bw) solid var(--ink)">
+    <div style="display:flex;align-items:baseline;gap:10px">
+      <span class="card-title">Issues</span>
+      <span class="shelf-meta">{{$d.IssueCount}} total · {{sub $d.IssueCount $d.ReadCount}} unread</span>
+    </div>
+    <div class="seg-control">
+      <a href="/_admin/library/{{$d.ID}}?issues=covers" class="seg-item {{if eq $d.IssueView "covers"}}active{{end}}">
+        {{icon "dashboard" 14}} Covers
+      </a>
+      <a href="/_admin/library/{{$d.ID}}?issues=list" class="seg-item {{if eq $d.IssueView "list"}}active{{end}}">
+        {{icon "log" 14}} List
+      </a>
+    </div>
+  </div>
+
+  {{if eq $d.IssueView "covers"}}
+  <div class="cover-grid-8" style="padding:18px">
+    {{range $i, $iss := $d.Issues}}
+    <div class="cover-item">
+      <div class="cover-art" style="background:{{coverGradient $d.Name $i}}">
+        {{if $iss.CoverURL}}<img src="{{$iss.CoverURL}}" alt="{{$iss.Name}}" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"/>{{end}}
+        <div class="cover-halftone"></div>
+        {{if $iss.Number}}
+        <div class="mono" style="position:absolute;right:6px;bottom:5px;font-size:26px;font-weight:700;color:rgba(255,255,255,0.22);line-height:1;z-index:1">{{$iss.Number}}</div>
+        {{end}}
+        {{if eq $iss.Status "completed"}}
+        <div class="cover-badge-done">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>
+        </div>
+        {{end}}
+        {{if eq $iss.Status "in_progress"}}
+        <div class="cover-progress"><div class="cover-progress-bar" style="width:{{printf "%.0f" $iss.Progress}}%"></div></div>
+        {{end}}
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:11.5px;font-weight:600">{{if $iss.Number}}#{{$iss.Number}}{{else}}{{$iss.Name}}{{end}}</div>
+        <div class="mono" style="font-size:9.5px;margin-top:1px;color:{{if eq $iss.Status "completed"}}#1d7a35{{else if eq $iss.Status "in_progress"}}var(--accent){{else}}var(--text-tertiary){{end}}">
+          {{if eq $iss.Status "completed"}}READ{{else if eq $iss.Status "in_progress"}}P.{{$iss.CurrentPage}}/{{$iss.TotalPages}}{{else}}{{if $iss.TotalPages}}{{$iss.TotalPages}}P{{else}}—{{end}}{{end}}
+        </div>
+      </div>
+    </div>
+    {{end}}
+  </div>
+
+  {{else}}
+  <div>
+    {{range $i, $iss := $d.Issues}}
+    <div class="table-row" style="grid-template-columns:38px 1fr 100px 90px;{{if eq $iss.Status "in_progress"}}background:var(--accent-soft);{{end}}">
+      <div style="width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;border:var(--bw) solid var(--ink);background:{{if eq $iss.Status "completed"}}var(--green){{else if eq $iss.Status "in_progress"}}var(--accent){{else}}var(--bg-2){{end}};font-family:var(--font-mono);font-size:10.5px;font-weight:700;color:{{if eq $iss.Status "unread"}}var(--text-tertiary){{else}}#fff{{end}}">
+        {{if eq $iss.Status "completed"}}
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>
+        {{else}}{{if $iss.Number}}{{$iss.Number}}{{end}}{{end}}
+      </div>
+      <div style="min-width:0">
+        <div class="truncate" style="font-size:13.5px;font-weight:600;{{if eq $iss.Status "completed"}}color:var(--text-secondary){{end}}">{{$iss.Name}}</div>
+        <div class="mono" style="font-size:10px;color:var(--text-tertiary);margin-top:1px">
+          {{if $iss.TotalPages}}{{$iss.TotalPages}} PAGES{{else}}—{{end}}
+        </div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill {{if eq $iss.Status "completed"}}progress-fill-green{{else}}progress-fill-accent{{end}}" style="width:{{printf "%.0f" $iss.Progress}}%"></div>
+      </div>
+      <div class="mono text-right" style="font-size:10.5px;color:var(--text-tertiary)">
+        {{if eq $iss.Status "completed"}}READ{{else if eq $iss.Status "in_progress"}}{{$iss.CurrentPage}}/{{$iss.TotalPages}}{{else}}—{{end}}
+      </div>
+    </div>
+    {{end}}
+  </div>
+  {{end}}
+</div>
+{{end}}

@@ -1,0 +1,33 @@
+# Built binary
+/comic-reader
+
+# Local SQLite state
+comic-reader.db
+comic-reader.db-shm
+comic-reader.db-wal
+
+# Offline metadata dumps (multi-GB, fetched out of band, never committed)
+localcv.db
+localcv.db-shm
+localcv.db-wal
+gcd.db
+gcd.db-shm
+gcd.db-wal
+
+# Runtime data dirs
+covers/
+cbr_cache/
+
+# Tooling caches
+.playwright-mcp/
+.superpowers/
+
+# Machine-specific runtime config (copy from config.example.yaml)
+config.yaml
+metron/testdata/livecache/
+.worktrees/
+/testdata/
+config.test.yaml
+
+# Claude Code local state (worktrees, session, settings)
+.claude/

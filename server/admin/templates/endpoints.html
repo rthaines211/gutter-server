@@ -1,0 +1,85 @@
+{{define "content"}}
+{{$d := .Content}}
+
+<div class="page-head">
+  <div class="page-head-titles">
+    <span class="page-sub">{{$d.TotalCount}} endpoints · {{$d.GroupCount}} groups</span>
+    <span class="page-title">Endpoints</span>
+  </div>
+</div>
+
+<div class="page-grid-wide">
+  <!-- Route list -->
+  <div class="card-flush">
+    <div style="padding:12px 16px;border-bottom:var(--bw) solid var(--ink);background:var(--bg-2);display:flex;align-items:center;gap:8px">
+      {{icon "routes" 16}}
+      <span class="mono" style="font-size:12px;font-weight:600">HTTP routes</span>
+    </div>
+    <div class="no-scrollbar" style="max-height:540px;overflow:auto">
+      {{range $gi, $g := $d.Groups}}
+      <div class="mono" style="padding:9px 16px 6px;font-size:10px;color:var(--accent);letter-spacing:1.2px;font-weight:700;background:var(--bg-1);position:sticky;top:0;text-transform:uppercase;z-index:2;{{if $gi}}border-top:1px solid var(--border-hairline);{{end}}">
+        {{$g.Name}} <span style="color:var(--text-disabled);margin-left:6px">{{$g.Count}}</span>
+      </div>
+      {{range $r := $g.Routes}}
+      <div class="route-row" onclick="selectRoute(this, '{{$r.Method}}', '{{$r.Path}}', '{{$r.Description}}')"
+           style="display:grid;grid-template-columns:64px 1fr;gap:12px;cursor:pointer">
+        <span class="method-badge method-{{if eq $r.Method "GET"}}get{{else if eq $r.Method "POST"}}post{{else if eq $r.Method "PUT"}}put{{else if eq $r.Method "DELETE"}}delete{{else}}get{{end}}">{{$r.Method}}</span>
+        <span class="mono truncate" style="color:var(--text-secondary);font-size:12px">{{$r.Path}}</span>
+      </div>
+      {{end}}
+      {{end}}
+    </div>
+  </div>
+
+  <!-- Inspector -->
+  <div class="card" id="inspector">
+    <div class="card-header"><span class="card-title">Inspect</span></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="method-badge method-get" id="inspect-method">GET</span>
+      <span class="mono" style="font-size:13px;font-weight:600" id="inspect-path">/library</span>
+    </div>
+    <div style="font-size:12.5px;color:var(--text-tertiary);margin-top:6px;line-height:1.5" id="inspect-desc">
+      List all series with filtering and sorting
+    </div>
+
+    <div class="mt-14" id="inspect-params"></div>
+
+    <div class="mt-14">
+      <div class="stat-label" style="margin-bottom:8px">Example request</div>
+      <pre class="config-yaml" style="max-height:240px;overflow:auto" id="inspect-curl">curl http://localhost:{{.Port}}/library</pre>
+    </div>
+  </div>
+</div>
+
+<script>
+var PORT = {{.Port}};
+function selectRoute(el, method, path, desc) {
+  document.querySelectorAll('.route-row').forEach(function(r) { r.style.background = ''; });
+  el.style.background = 'var(--accent-soft)';
+
+  document.getElementById('inspect-method').textContent = method;
+  document.getElementById('inspect-method').className = 'method-badge method-' + method.toLowerCase();
+  document.getElementById('inspect-path').textContent = path;
+  document.getElementById('inspect-desc').textContent = desc;
+
+  var curlPath = path.replace(/\{(\w+)\}/g, ':$1');
+  var curl = 'curl';
+  if (method !== 'GET') curl += ' -X ' + method;
+  curl += ' http://localhost:' + PORT + curlPath;
+  document.getElementById('inspect-curl').textContent = curl;
+
+  var paramsDiv = document.getElementById('inspect-params');
+  var matches = path.match(/\{(\w+)\}/g);
+  if (matches && matches.length > 0) {
+    var html = '<div class="stat-label" style="margin-bottom:6px">Path params</div>';
+    matches.forEach(function(m) {
+      var name = m.replace(/[{}]/g, '');
+      html += '<div class="kv" style="margin-top:6px"><span class="kv-key">' + name + '</span><span class="kv-val" style="color:var(--accent)">string</span></div>';
+    });
+    paramsDiv.innerHTML = html;
+  } else {
+    paramsDiv.innerHTML = '';
+  }
+}
+</script>
+{{end}}

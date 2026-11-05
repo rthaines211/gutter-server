@@ -1,0 +1,93 @@
+{{define "content"}}
+{{$d := .Content}}
+
+<div class="page-head">
+  <div class="page-head-titles">
+    <span class="page-sub">Port {{$d.Port}} · {{len $d.ComicDirs}} comic roots</span>
+    <span class="page-title">Config</span>
+  </div>
+</div>
+
+<div class="config-grid">
+  <div class="flex-col gap-14">
+    <!-- Comic directories -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">Comic directories</span></div>
+      <div class="flex-col">
+        {{range $d.ComicDirs}}
+        <div class="dir-row">
+          {{icon "folder" 16}}
+          <span class="dir-path">{{.Path}}</span>
+          {{if .Mounted}}
+            <span class="cap cap-right">Mounted</span>
+          {{else}}
+            <span class="pill pill-red" style="font-size:10px">MISSING</span>
+          {{end}}
+          <form method="POST" action="/_admin/config/remove-dir">
+            <button type="submit" class="btn-icon" title="Remove" onclick="return confirm('Remove this directory?')">{{icon "x" 15}}</button>
+            <input type="hidden" name="dir" value="{{.Path}}"/>
+          </form>
+        </div>
+        {{end}}
+      </div>
+      <form method="POST" action="/_admin/config/add-dir" class="mt-12" style="display:flex;gap:8px;align-items:center">
+        <input type="text" name="dir" placeholder="/path/to/comics" class="config-input" style="flex:1" required/>
+        <button type="submit" class="btn btn-sm">{{icon "plus" 14}} Add</button>
+      </form>
+    </div>
+
+    <!-- Server settings -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">Server</span></div>
+      <div class="config-fields">
+        <div>
+          <div class="config-field-label">Listen port</div>
+          <div class="config-field-value">{{$d.Port}}</div>
+        </div>
+        <div>
+          <div class="config-field-label">DB path</div>
+          <div class="config-field-value">{{$d.DBPath}}</div>
+        </div>
+        <div>
+          <div class="config-field-label">Cover dir</div>
+          <div class="config-field-value">{{$d.CoverDir}}</div>
+        </div>
+        <div>
+          <div class="config-field-label">Cache items</div>
+          <div class="config-field-value">{{$d.CacheItems}}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- config.yaml -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">config.yaml</span></div>
+      <pre class="config-yaml">{{$d.YamlSource}}</pre>
+    </div>
+  </div>
+
+  <div class="flex-col gap-12">
+    <div class="card-sm">
+      <div class="stat-label">Process</div>
+      <div class="mt-10 flex-col" style="gap:4px">
+        <div class="kv"><span class="kv-key">Binary</span><span class="kv-val">comic-reader@v{{$d.Process.Version}}</span></div>
+        <div class="kv"><span class="kv-key">Go</span><span class="kv-val">{{$d.Process.GoVersion}}</span></div>
+        <div class="kv"><span class="kv-key">PID</span><span class="kv-val">{{$d.Process.PID}}</span></div>
+        <div class="kv"><span class="kv-key">Started</span><span class="kv-val">{{$d.Process.StartedAt}}</span></div>
+        <div class="kv"><span class="kv-key">Uptime</span><span class="kv-val">{{$d.Process.Uptime}}</span></div>
+        <div class="kv"><span class="kv-key">Memory</span><span class="kv-val">{{$d.Process.MemoryMB}} MB</span></div>
+        <div class="kv"><span class="kv-key">Goroutines</span><span class="kv-val">{{$d.Process.Goroutines}}</span></div>
+      </div>
+    </div>
+
+    <div class="card-sm">
+      <div class="stat-label">Database</div>
+      <div class="mt-10 flex-col" style="gap:4px">
+        <div class="kv"><span class="kv-key">Driver</span><span class="kv-val">{{$d.Database.Driver}}</span></div>
+        <div class="kv"><span class="kv-key">Size</span><span class="kv-val">{{printf "%.1f" $d.Database.SizeMB}} MB</span></div>
+        <div class="kv"><span class="kv-key">Tables</span><span class="kv-val">{{$d.Database.Tables}}</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+{{end}}

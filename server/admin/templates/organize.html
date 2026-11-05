@@ -1,0 +1,154 @@
+{{define "content"}}
+{{$d := .Content}}
+
+<div class="page-head">
+  <div class="page-head-titles">
+    <span class="page-sub">Confirmed series only · nothing is ever overwritten</span>
+    <span class="page-title">Organize</span>
+  </div>
+  {{if and $d.Enabled (not $d.Error) $d.Plan.Series}}
+  <div class="page-head-actions">
+    <form method="POST" action="/_admin/organize/apply">
+      <button class="btn btn-primary" type="submit"
+              onclick="return confirm('Apply ALL planned changes to disk?')">
+        {{icon "folder" 18}} Apply all
+      </button>
+    </form>
+  </div>
+  {{end}}
+</div>
+
+{{if not $d.Enabled}}
+<div class="card">
+  <p class="mono" style="font-size:12px">Disabled — set <code>localcv_db_path</code> in config.</p>
+</div>
+{{else if $d.Error}}
+<div class="card" style="border-color:var(--red)">
+  <p class="mono" style="font-size:12px;color:var(--red)">Plan failed: {{$d.Error}}</p>
+</div>
+{{else}}
+
+<!-- Plan totals -->
+<div class="stat-grid" style="grid-template-columns:repeat(5,minmax(0,1fr))">
+  <div class="card-sm">
+    <div class="stat-label">Series</div>
+    <div class="mt-10" style="font-family:var(--font-display);font-weight:var(--display-weight);font-size:26px;line-height:1;letter-spacing:var(--display-spacing)">{{len $d.Plan.Series}}</div>
+  </div>
+  <div class="card-sm">
+    <div class="stat-label">Renames</div>
+    <div class="mt-10" style="font-family:var(--font-display);font-weight:var(--display-weight);font-size:26px;line-height:1;letter-spacing:var(--display-spacing);color:var(--accent)">{{$d.Plan.Renames}}</div>
+  </div>
+  <div class="card-sm">
+    <div class="stat-label">Moves</div>
+    <div class="mt-10" style="font-family:var(--font-display);font-weight:var(--display-weight);font-size:26px;line-height:1;letter-spacing:var(--display-spacing);color:var(--accent)">{{$d.Plan.Moves}}</div>
+  </div>
+  <div class="card-sm">
+    <div class="stat-label">Folder renames</div>
+    <div class="mt-10" style="font-family:var(--font-display);font-weight:var(--display-weight);font-size:26px;line-height:1;letter-spacing:var(--display-spacing);color:#1d7a35">{{$d.Plan.FolderRenames}}</div>
+  </div>
+  <div class="card-sm">
+    <div class="stat-label">Flagged</div>
+    <div class="mt-10" style="font-family:var(--font-display);font-weight:var(--display-weight);font-size:26px;line-height:1;letter-spacing:var(--display-spacing);color:var(--amber-text)">{{$d.Plan.Flags}}</div>
+  </div>
+</div>
+{{end}}
+
+{{if $d.Templates}}
+<div class="card">
+  <div class="card-header"><span class="card-title">Rename templates</span></div>
+  <form method="POST" action="/_admin/organize/templates" class="flex-col gap-12">
+    {{range $d.Templates}}
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <span class="mono" style="width:60px;font-size:11px;font-weight:700;letter-spacing:0.5px">{{.Format}}</span>
+      <input class="config-input" type="text" name="tpl_{{.Format}}" value="{{.Template}}" style="flex:1;min-width:220px"/>
+    </div>
+    {{end}}
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" type="submit">Save templates</button>
+      <span class="mono" style="color:var(--text-tertiary);font-size:10.5px">
+        tokens: {series} {number} {number:03} {year} {title} {format} — the plan below updates on save
+      </span>
+    </div>
+  </form>
+</div>
+{{end}}
+
+{{if $d.Busy}}
+<div class="card" style="border-color:var(--amber)">
+  <div class="card-header">
+    <span class="card-title">Apply not started</span>
+  </div>
+  <p class="mono" style="font-size:12px;color:var(--amber)">
+    Nothing was changed — {{$d.Busy}}. Only one thing may touch the files at a
+    time; try again when it finishes.
+  </p>
+</div>
+{{end}}
+
+{{if $d.Report}}
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Last apply</span>
+    <span class="cap cap-right">{{$d.Report.Applied}} applied</span>
+  </div>
+  <p class="mono" style="font-size:12px">{{$d.Report.Applied}} applied · {{$d.Report.Skipped}} skipped</p>
+  {{if $d.Report.Errors}}
+  <div class="mt-10" style="display:flex;flex-direction:column;gap:2px">
+    {{range $d.Report.Errors}}<div class="log-line log-line-sm" style="color:var(--red)">{{.}}</div>{{end}}
+  </div>
+  {{end}}
+</div>
+{{end}}
+
+{{if $d.Plan}}
+  {{if not $d.Plan.Series}}
+  <div class="card" style="text-align:center;padding:36px 20px;display:flex;flex-direction:column;align-items:center;gap:8px">
+    <span class="card-title">Nothing to organize</span>
+    <span class="mono" style="font-size:11px;color:var(--text-tertiary)">EVERY CONFIRMED SERIES IS ALREADY IN SHAPE</span>
+  </div>
+  {{else}}
+    {{range $d.SeriesRows}}
+    <div class="card-flush">
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:var(--bw) solid var(--ink);background:var(--bg-2);flex-wrap:wrap">
+        <span style="flex:1;min-width:0;font-size:14px;font-weight:700">{{.SeriesName}}</span>
+        <span class="mono" style="font-size:10px;color:var(--text-tertiary)">{{len .Ops}} OPS</span>
+        <form method="POST" action="/_admin/organize/apply">
+          <input type="hidden" name="series_id" value="{{.SeriesID}}"/>
+          <button class="btn btn-sm" type="submit"
+                  onclick="return confirm('Apply planned changes for {{.SeriesName}}?')">
+            Apply this series
+          </button>
+        </form>
+      </div>
+
+      {{range .VisibleOps}}
+      <div style="display:grid;grid-template-columns:120px 1fr;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border-hairline);align-items:baseline">
+        <div>
+          {{if eq .Kind "flag"}}<span class="pill pill-amber" style="font-size:10px">{{.Kind}}</span>
+          {{else if eq .Kind "move_file"}}<span class="pill pill-blue" style="font-size:10px">{{.Kind}}</span>
+          {{else if eq .Kind "rename_folder"}}<span class="pill pill-green" style="font-size:10px">{{.Kind}}</span>
+          {{else}}<span class="pill pill-gray" style="font-size:10px">{{.Kind}}</span>{{end}}
+        </div>
+        <div style="min-width:0">
+          <div class="mono" style="font-size:11.5px;word-break:break-all">
+            {{if eq .Kind "flag"}}{{.Old}}{{else}}{{.Old}} <span style="color:var(--accent)">→</span> {{.New}}{{end}}
+          </div>
+          {{if .Reason}}
+          <div style="font-size:11.5px;color:var(--text-tertiary);margin-top:2px">{{.Reason}}</div>
+          {{end}}
+        </div>
+      </div>
+      {{end}}
+
+      {{if not .ShowAll}}
+      <div style="padding:12px 16px">
+        <a class="btn btn-sm btn-ghost" href="/_admin/organize?all=1">
+          Show all {{len .Ops}} ops ({{.MoreCount}} more)
+        </a>
+      </div>
+      {{end}}
+    </div>
+    {{end}}
+  {{end}}
+{{end}}
+{{end}}
