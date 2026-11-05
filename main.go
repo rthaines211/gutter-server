@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/rthaines211/gutter-server/archive"
@@ -225,7 +226,15 @@ func main() {
 		log.Printf("push: enabled (key %s)", cfg.Push.KeyID)
 	}
 	log.Printf("pipeline: auto_pipeline=%v scan_interval=%s", cfg.AutoPipeline, cfg.ScanInterval)
+	// One guard for every caller: the scheduler, the first-run scan and
+	// POST /library/refresh (srv.Rescan) all route through scanFn.
+	var scanMu sync.Mutex
 	scanFn := func() {
+		if !scanMu.TryLock() {
+			log.Printf("scan: already running, skipped")
+			return
+		}
+		defer scanMu.Unlock()
 		log.Println("scheduled scan starting...")
 		if cfg.AutoPipeline {
 			// Spans scan + pipeline so status polls never see an idle gap between them.
