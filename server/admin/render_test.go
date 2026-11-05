@@ -8,6 +8,7 @@ import (
 
 	"github.com/rthaines211/gutter-server/cache"
 	"github.com/rthaines211/gutter-server/config"
+	"github.com/rthaines211/gutter-server/match"
 	"github.com/rthaines211/gutter-server/store"
 )
 
@@ -152,6 +153,42 @@ func TestStandaloneGridClassesDeclareDisplayGrid(t *testing.T) {
 		}
 		if !found {
 			t.Errorf(".%s is used standalone in a template but no display:grid rule lists it", class)
+		}
+	}
+}
+
+// With matching off the overview must not show match widgets; with a runner
+// it must.
+func TestOverviewMatchWidgets(t *testing.T) {
+	st, err := store.NewStore(t.TempDir() + "/app.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+	a, err := New(st, cache.NewLRU(16), []string{t.TempDir()}, "", "", 8081, NewRequestLog(64), NewScanState())
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.Config = &config.Config{Port: 8081, ComicDirs: []string{t.TempDir()}}
+	get := func() string {
+		rec := httptest.NewRecorder()
+		newTestMux(a).ServeHTTP(rec, httptest.NewRequest("GET", "/_admin/", nil))
+		if rec.Code != 200 {
+			t.Fatalf("overview = %d", rec.Code)
+		}
+		return rec.Body.String()
+	}
+	body := get()
+	for _, s := range []string{"Open queue", "SERIES MATCHED", "Match queue"} {
+		if strings.Contains(body, s) {
+			t.Errorf("matching off: overview contains %q", s)
+		}
+	}
+	a.Match = &match.Runner{}
+	body = get()
+	for _, s := range []string{"Open queue", "SERIES MATCHED"} {
+		if !strings.Contains(body, s) {
+			t.Errorf("matching on: overview missing %q", s)
 		}
 	}
 }

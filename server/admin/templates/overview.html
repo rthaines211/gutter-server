@@ -53,6 +53,7 @@
     </div>
   </a>
 
+  {{if .MatchEnabled}}
   <div class="stat-card">
     <div class="stat-card-head">
       <span class="stat-label">Matched</span>
@@ -66,6 +67,8 @@
       <div class="progress-fill progress-fill-accent" style="width:{{printf "%.1f" (pct $d.MatchedCount $d.SeriesCount)}}%"></div>
     </div>
   </div>
+
+  {{end}}
 
   <div class="stat-card">
     <div class="stat-card-head">
@@ -83,6 +86,7 @@
 </div>
 
 <div class="page-grid-wide">
+  {{if .MatchEnabled}}
   <!-- Match queue -->
   <div class="card">
     <div class="card-header">
@@ -106,6 +110,7 @@
       {{$d.MatchedCount}} OF {{$d.SeriesCount}} SERIES MATCHED · NOTHING AUTO-ACCEPTED
     </div>
   </div>
+  {{end}}
 
   <!-- Mounted volumes -->
   <div class="card">
