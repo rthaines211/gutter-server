@@ -191,14 +191,13 @@ func main() {
 	adm.Config = cfg
 	adm.Match = matchRunner
 
-	if !cfg.WritebackDisabled && !writeback.Writable(cfg.ComicDirs) {
-		cfg.WritebackDisabled = true
-		log.Printf("writeback: off (library is read-only)")
-	}
+	// Local, not cfg: a console Save must never persist the read-only probe.
 	if len(cfg.ComicDirs) == 0 {
 		log.Printf("writeback: worker not started (no comic_dirs configured)")
 	} else if cfg.WritebackDisabled {
-		log.Printf("writeback: worker not started (writeback_disabled: true)")
+		log.Printf("writeback: off (opt in with GUTTER_WRITEBACK=true and a read-write mount)")
+	} else if !writeback.Writable(cfg.ComicDirs) {
+		log.Printf("writeback: off (library is read-only)")
 	} else {
 		wbWorker := writeback.New(db, cfg.ComicDirs, cfg.CoverDir, 500*time.Millisecond, adm)
 		wbWorker.Start()
