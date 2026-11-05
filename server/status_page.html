@@ -19,7 +19,9 @@
   <h1>GUTTER</h1>
   <div class="sub">Comic server {{.Version}}</div>
   {{if .Scanning}}
-  <p id="scan">Scanning… {{.Scanned}} of {{.Total}} series</p>
+  <p id="scan">Scanning…{{if .Total}} {{.Scanned}} of {{.Total}} series{{end}}</p>
+  {{else if not .Count}}
+  <p id="scan">No series found in {{.Dirs}}. Gutter expects one folder per series with CBZ/CBR files inside.</p>
   {{else}}
   <p id="scan">Ready · {{.Count}} series</p>
   {{end}}
@@ -32,7 +34,7 @@
     try {
       const s = await (await fetch('/library/refresh/status')).json();
       if (!s.is_scanning) { clearInterval(t); location.reload(); return; }
-      document.getElementById('scan').textContent = 'Scanning… ' + s.scanned + ' of ' + s.total + ' series';
+      document.getElementById('scan').textContent = s.total ? 'Scanning… ' + s.scanned + ' of ' + s.total + ' series' : 'Scanning…';
     } catch (e) {}
   }, 2000);
 </script>

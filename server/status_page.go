@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"html/template"
 	"net/http"
+	"strings"
 
 	"github.com/rthaines211/gutter-server/server/admin"
 )
@@ -22,7 +23,9 @@ func (s *Server) HandleStatusPage(w http.ResponseWriter, r *http.Request) {
 	}
 	var snap admin.ScanSnapshot
 	match := false
+	var dirs []string
 	if s.Admin != nil {
+		dirs = s.Admin.ComicDirs
 		if s.Admin.ScanState != nil {
 			snap = s.Admin.ScanState.Snapshot()
 		}
@@ -39,6 +42,7 @@ func (s *Server) HandleStatusPage(w http.ResponseWriter, r *http.Request) {
 		"Scanned":  snap.Scanned,
 		"Total":    snap.Total,
 		"Count":    count,
+		"Dirs":     strings.Join(dirs, ", "),
 		"Match":    match,
 		"URL":      scheme + "://" + r.Host,
 	})

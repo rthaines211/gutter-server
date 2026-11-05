@@ -65,3 +65,30 @@ func TestStatusPageServerURL(t *testing.T) {
 		t.Errorf("want https url, got %s", rec.Body.String())
 	}
 }
+
+func TestStatusPageEmptyLibraryExplainsLayout(t *testing.T) {
+	srv := newTestServer(t)
+	srv.Admin = &admin.Admin{ScanState: admin.NewScanState(), ComicDirs: []string{"/comics", "/<b>x"}}
+	body := statusBody(t, srv, "/")
+	if !strings.Contains(body, "No series found in /comics, /&lt;b&gt;x.") ||
+		!strings.Contains(body, "one folder per series with CBZ/CBR files inside") {
+		t.Errorf("want empty-library hint with escaped dirs, got %s", body)
+	}
+	if strings.Contains(body, "Ready") {
+		t.Error("empty library must not say Ready")
+	}
+}
+
+func TestStatusPageScanningBeforeTotal(t *testing.T) {
+	srv := newTestServer(t)
+	ss := admin.NewScanState()
+	ss.StartScan()
+	srv.Admin = &admin.Admin{ScanState: ss}
+	body := statusBody(t, srv, "/")
+	if !strings.Contains(body, `<p id="scan">Scanning…</p>`) || strings.Contains(body, "0 of 0") {
+		t.Errorf("want bare Scanning… while total is 0, got %s", body)
+	}
+	if !strings.Contains(body, "s.total ?") {
+		t.Error("poller must also skip counts while total is 0")
+	}
+}
