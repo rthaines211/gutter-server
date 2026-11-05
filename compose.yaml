@@ -7,6 +7,7 @@ services:
       GUTTER_PASSWORD: change-me          # required
       # GUTTER_API_KEY: ""                # optional, for scripts (Authorization: Bearer)
       # GUTTER_COMICVINE_KEY: ""          # see docs/CONFIG.md, Metadata
+      # GUTTER_WRITEBACK: "true"          # writes into your files; also remove :ro below (docs/CONFIG.md)
     volumes:
       - ./data:/data
-      - /path/to/your/comics:/comics:ro   # remove :ro to let Gutter write metadata into files (GUTTER_WRITEBACK=false keeps it off)
+      - /path/to/your/comics:/comics:ro   # one folder per series, CBZ/CBR files inside

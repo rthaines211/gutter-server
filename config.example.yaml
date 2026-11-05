@@ -22,10 +22,10 @@ comicvine_api_key: ""
 metron_user: ""
 metron_pass: ""
 
-# Set true on a non-production instance sharing the same comic_dirs. Stops the
-# writeback worker from writing ComicInfo.xml into (and converting) real files
-# while the production instance holds the same library. Default false.
-writeback_disabled: false
+# Writeback writes ComicInfo.xml into your files and converts CBR to CBZ.
+# Off by default; set false (and mount the library read-write) to opt in.
+# GUTTER_WRITEBACK=true/false overrides this. See docs/CONFIG.md.
+writeback_disabled: true
 
 bubbles_dir: ""
 

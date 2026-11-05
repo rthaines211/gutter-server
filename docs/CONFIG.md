@@ -4,7 +4,10 @@ Gutter works with just `GUTTER_PASSWORD` set. Everything else is optional.
 
 The config file `/data/config.yaml` is optional. If you save settings in the
 admin console (`/_admin/`) it creates the file (mode 0600). Environment
-variables override the file.
+variables override the file, and are never written into it: saving keeps the
+file's own values. If you change the scan interval in the console while
+`GUTTER_SCAN_INTERVAL` is set, the file records your change but the env var
+still wins at the next start.
 
 ## Auth
 
@@ -20,7 +23,7 @@ password) or `Bearer <GUTTER_API_KEY>`. Only `GET /healthz` is open.
 | `GUTTER_AUTH` | unset | `off` disables authentication. Only for a trusted private network. |
 | `GUTTER_COMICVINE_KEY` | none | ComicVine API key. Adds live lookups. |
 | `GUTTER_METRON_USER`, `GUTTER_METRON_PASS` | none | Metron account. Adds a fallback metadata source. |
-| `GUTTER_WRITEBACK` | on if the library is writable | `true` or `false` overrides `writeback_disabled`. |
+| `GUTTER_WRITEBACK` | off | `true` turns on writing metadata into your files (also needs a read-write mount). `true` or `false` overrides `writeback_disabled`. |
 | `GUTTER_SCAN_INTERVAL` | `30m` | How often to rescan. `off` means manual scans only. |
 
 ## Config file keys
@@ -39,7 +42,7 @@ password) or `Bearer <GUTTER_API_KEY>`. Only `GET /healthz` is open.
 | `gcd_db_path` | unset | Optional Grand Comics Database dump. |
 | `comicvine_api_key` | unset | Same as `GUTTER_COMICVINE_KEY`. |
 | `metron_user`, `metron_pass` | unset | Same as the `GUTTER_METRON_*` variables. |
-| `writeback_disabled` | `false` | `true` turns off metadata writeback. |
+| `writeback_disabled` | `true` | `false` turns on metadata writeback (also needs a read-write mount). |
 | `auto_pipeline` | `false` | After each scheduled scan, match, enrich and write back the new or changed series. |
 | `password`, `api_key` | unset | Same as `GUTTER_PASSWORD` and `GUTTER_API_KEY`. Prefer the env vars. |
 
@@ -58,12 +61,23 @@ only add to it. Gutter does not ship a dump.
 
 ## Letting Gutter write to your files
 
-The library is mounted read-only (`:ro` in `compose.yaml`) and a read-only
-mount keeps writeback off. Removing `:ro` is the opt-in: on a writable mount,
-writeback is on. `GUTTER_WRITEBACK=false` keeps it off even on a writable
-mount. Gutter then writes matched metadata into each file's ComicInfo.xml, and
-may convert CBR files to CBZ when it does. It only writes for series matched
-against your own `localcv` dump. Back up your library first.
+Writeback is off by default, and the library is mounted read-only (`:ro` in
+`compose.yaml`). To turn it on, do both:
+
+1. remove `:ro` from the comics volume, and
+2. set `GUTTER_WRITEBACK=true` (or `writeback_disabled: false` in the config
+   file).
+
+On a read-only mount writeback stays off whatever the setting says.
+
+What it writes: a ComicInfo.xml inside each changed comic file. It writes when
+metadata changes in Gutter, which covers both matched metadata (matching and
+enrichment, which need your `localcv` dump) and edits made in the app's
+metadata editor (no dump needed). Edits made while writeback is off are queued
+and written once it is on.
+
+CBR files are converted to CBZ when written: the new `.cbz` is checked page by
+page, then the original `.cbr` is deleted. Back up your library first.
 
 ## Upgrading
 
@@ -84,5 +98,5 @@ To snapshot a running server, run from the compose directory:
 VOLUME=$PWD/data scripts/gutter-db-backup.sh
 ```
 
-Snapshots land in `data/db-backups/`. The script fails if it can't find the
+Snapshots land in `data/db-backups/` (inside `VOLUME` when it is a host path). The script fails if it can't find the
 database. See its header for the other settings (`DB_FILE`, `OUT_DIR`, `KEEP`).
