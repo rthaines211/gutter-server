@@ -13,9 +13,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/match/gcd/gcdtest"
-	"github.com/ryanhaines/comic-reader/metron"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/match/gcd/gcdtest"
+	"github.com/rthaines211/gutter-server/metron"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 func TestApplyPopulatesEnrichment(t *testing.T) {

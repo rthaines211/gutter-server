@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/comicvine"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/comicvine"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 type fakeVine struct {

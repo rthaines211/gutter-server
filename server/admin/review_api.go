@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ryanhaines/comic-reader/match"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/match"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // ReviewItem is one series awaiting a human match decision, with the matcher's

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // seedTwinIssue seeds an issue whose file lives in the downloader's twin

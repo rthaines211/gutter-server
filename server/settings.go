@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 func (s *Server) HandleGetSettings(w http.ResponseWriter, r *http.Request) {

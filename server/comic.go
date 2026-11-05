@@ -13,9 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/archive"
-	"github.com/ryanhaines/comic-reader/metadata"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/archive"
+	"github.com/rthaines211/gutter-server/metadata"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // cachedArchive holds an open archive reader with an expiry.

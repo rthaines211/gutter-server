@@ -1,4 +1,4 @@
-// Command pushwatch runs on the host Mac from launchd and pushes "comic-reader
+// Command pushwatch runs on the host Mac from launchd and pushes "gutter
 // is down" when /healthz keeps failing — the one alert the server can't send
 // itself. One tick per run; launchd supplies the interval.
 package main
@@ -14,8 +14,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/config"
-	"github.com/ryanhaines/comic-reader/push"
+	"github.com/rthaines211/gutter-server/config"
+	"github.com/rthaines211/gutter-server/push"
 )
 
 func main() {

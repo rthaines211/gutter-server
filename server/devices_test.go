@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/notify"
-	"github.com/ryanhaines/comic-reader/push"
+	"github.com/rthaines211/gutter-server/notify"
+	"github.com/rthaines211/gutter-server/push"
 )
 
 func devicesServer(t *testing.T, secret string) *Server {

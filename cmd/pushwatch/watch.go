@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ryanhaines/comic-reader/push"
+	"github.com/rthaines211/gutter-server/push"
 )
 
 // State persists between launchd ticks.
@@ -21,7 +21,7 @@ type State struct {
 func Step(s State, healthy bool, detail string) (State, *push.Notification) {
 	if healthy {
 		if s.Alerted {
-			return State{}, &push.Notification{Title: "comic-reader is back"}
+			return State{}, &push.Notification{Title: "gutter is back"}
 		}
 		return State{}, nil
 	}
@@ -32,7 +32,7 @@ func Step(s State, healthy bool, detail string) (State, *push.Notification) {
 		if len(body) > 200 {
 			body = body[:200]
 		}
-		return s, &push.Notification{Title: "comic-reader is down", Body: string(body)}
+		return s, &push.Notification{Title: "gutter is down", Body: string(body)}
 	}
 	return s, nil
 }

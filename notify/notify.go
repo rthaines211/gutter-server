@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/push"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/push"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // failureWindow caps failure pushes to one per kind per window.

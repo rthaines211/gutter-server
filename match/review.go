@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ryanhaines/comic-reader/match/gcd"
-	"github.com/ryanhaines/comic-reader/match/localcv"
-	"github.com/ryanhaines/comic-reader/match/parse"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/match/gcd"
+	"github.com/rthaines211/gutter-server/match/localcv"
+	"github.com/rthaines211/gutter-server/match/parse"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // MethodHumanRepin records an issue match a human rebound in the console.

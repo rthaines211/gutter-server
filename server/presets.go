@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 type CreatePresetRequest struct {

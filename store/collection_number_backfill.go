@@ -3,7 +3,7 @@ package store
 import (
 	"database/sql"
 
-	"github.com/ryanhaines/comic-reader/match/parse"
+	"github.com/rthaines211/gutter-server/match/parse"
 )
 
 // backfillCollectionNumbers fills in the volume number for collected editions

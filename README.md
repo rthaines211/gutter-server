@@ -11,7 +11,7 @@ syncs reading progress.
 cp config.example.yaml config.yaml   # set the library path, ports, optional API keys
 docker build -t gutter-server .
 docker run -p 8081:8081 \
-           -v $PWD/config.yaml:/etc/comic-reader/config.yaml \
+           -v $PWD/config.yaml:/data/config.yaml \
            -v /path/to/comics:/comics gutter-server
 ```
 

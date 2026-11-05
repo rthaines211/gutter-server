@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/ryanhaines/comic-reader/enrichment"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/enrichment"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 type EnrichmentStatusResponse struct {

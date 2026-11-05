@@ -3,7 +3,7 @@ package store
 import (
 	"time"
 
-	"github.com/ryanhaines/comic-reader/push"
+	"github.com/rthaines211/gutter-server/push"
 )
 
 // UpsertDeviceToken records a token, or refreshes its env and last-seen time.

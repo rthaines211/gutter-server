@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 type fakeDetector struct {

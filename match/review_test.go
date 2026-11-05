@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/match/gcd/gcdtest"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/match/gcd/gcdtest"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // A hash resolving to an international reprint (Panini España's Saga '2013')

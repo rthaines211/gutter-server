@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 func seedEnrichmentSeries(t *testing.T, srv *Server) {

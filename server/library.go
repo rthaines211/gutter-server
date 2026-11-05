@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/archive"
-	"github.com/ryanhaines/comic-reader/comicvine"
-	"github.com/ryanhaines/comic-reader/metadata"
-	"github.com/ryanhaines/comic-reader/server/admin"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/archive"
+	"github.com/rthaines211/gutter-server/comicvine"
+	"github.com/rthaines211/gutter-server/metadata"
+	"github.com/rthaines211/gutter-server/server/admin"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 type LibrarySeriesResponse struct {

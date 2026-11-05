@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/cache"
-	"github.com/ryanhaines/comic-reader/config"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/cache"
+	"github.com/rthaines211/gutter-server/config"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // Every console screen must actually execute its template. html/template

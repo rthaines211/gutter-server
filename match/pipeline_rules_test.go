@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 func TestAutoConfirmableRequiresAllFour(t *testing.T) {

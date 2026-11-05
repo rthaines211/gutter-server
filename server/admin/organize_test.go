@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/organize"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/organize"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // capOps caps each series card at opCap rows unless showAll is set, mirroring

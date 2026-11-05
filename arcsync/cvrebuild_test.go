@@ -9,9 +9,9 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/ryanhaines/comic-reader/comicvine"
-	"github.com/ryanhaines/comic-reader/match/localcv"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/comicvine"
+	"github.com/rthaines211/gutter-server/match/localcv"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // newLocalCVFixture builds a minimal localcv dump holding just what

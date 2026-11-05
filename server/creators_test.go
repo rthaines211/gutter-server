@@ -9,8 +9,8 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/ryanhaines/comic-reader/creators"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/creators"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // newUnbuiltCreatorsIndex opens a creators.Index against a bare (schemaless

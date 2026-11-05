@@ -10,8 +10,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/metadata"
-	"github.com/ryanhaines/comic-reader/ocr"
+	"github.com/rthaines211/gutter-server/metadata"
+	"github.com/rthaines211/gutter-server/ocr"
 )
 
 var jobSeq atomic.Int64

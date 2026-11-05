@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/cache"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/cache"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 func TestHandleLibraryRecap_HappyPath(t *testing.T) {

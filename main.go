@@ -10,24 +10,24 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/archive"
-	"github.com/ryanhaines/comic-reader/arcsync"
-	"github.com/ryanhaines/comic-reader/cache"
-	"github.com/ryanhaines/comic-reader/comicvine"
-	"github.com/ryanhaines/comic-reader/config"
-	"github.com/ryanhaines/comic-reader/creators"
-	"github.com/ryanhaines/comic-reader/enrichment"
-	"github.com/ryanhaines/comic-reader/match"
-	"github.com/ryanhaines/comic-reader/match/gcd"
-	"github.com/ryanhaines/comic-reader/match/localcv"
-	"github.com/ryanhaines/comic-reader/metron"
-	"github.com/ryanhaines/comic-reader/notify"
-	"github.com/ryanhaines/comic-reader/push"
-	"github.com/ryanhaines/comic-reader/server"
-	"github.com/ryanhaines/comic-reader/server/admin"
-	"github.com/ryanhaines/comic-reader/store"
-	"github.com/ryanhaines/comic-reader/tagger"
-	"github.com/ryanhaines/comic-reader/writeback"
+	"github.com/rthaines211/gutter-server/archive"
+	"github.com/rthaines211/gutter-server/arcsync"
+	"github.com/rthaines211/gutter-server/cache"
+	"github.com/rthaines211/gutter-server/comicvine"
+	"github.com/rthaines211/gutter-server/config"
+	"github.com/rthaines211/gutter-server/creators"
+	"github.com/rthaines211/gutter-server/enrichment"
+	"github.com/rthaines211/gutter-server/match"
+	"github.com/rthaines211/gutter-server/match/gcd"
+	"github.com/rthaines211/gutter-server/match/localcv"
+	"github.com/rthaines211/gutter-server/metron"
+	"github.com/rthaines211/gutter-server/notify"
+	"github.com/rthaines211/gutter-server/push"
+	"github.com/rthaines211/gutter-server/server"
+	"github.com/rthaines211/gutter-server/server/admin"
+	"github.com/rthaines211/gutter-server/store"
+	"github.com/rthaines211/gutter-server/tagger"
+	"github.com/rthaines211/gutter-server/writeback"
 )
 
 func main() {
@@ -251,7 +251,7 @@ func main() {
 	log.Printf("serving %d series from database (scan skipped, use POST /library/refresh or wait for scheduled scan)", count)
 
 	addr := fmt.Sprintf(":%d", cfg.Port)
-	log.Printf("comic-reader starting on %s", addr)
+	log.Printf("gutter starting on %s", addr)
 	log.Printf("serving comics from: %v", cfg.ComicDirs)
 
 	httpServer := &http.Server{

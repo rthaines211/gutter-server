@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/push"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/push"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 func ev(name, kind, detail string) store.PipelineEvent {

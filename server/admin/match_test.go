@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/match"
-	"github.com/ryanhaines/comic-reader/match/gcd/gcdtest"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/match"
+	"github.com/rthaines211/gutter-server/match/gcd/gcdtest"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // A GCD series in the fixture below, shared by the two cross/same-source

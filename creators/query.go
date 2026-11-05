@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ryanhaines/comic-reader/comicvine"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/comicvine"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // ErrNotReady is returned by queries that read cv_credit (Bibliography,

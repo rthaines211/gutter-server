@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/match/gcd"
-	"github.com/ryanhaines/comic-reader/match/gcd/gcdtest"
+	"github.com/rthaines211/gutter-server/match/gcd"
+	"github.com/rthaines211/gutter-server/match/gcd/gcdtest"
 )
 
 // Iron Man (2026) as GCD records it: a US/EN series, legacy numbering, one

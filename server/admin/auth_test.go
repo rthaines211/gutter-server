@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/config"
+	"github.com/rthaines211/gutter-server/config"
 )
 
 func TestRequireAuth(t *testing.T) {

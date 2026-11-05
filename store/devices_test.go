@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/push"
+	"github.com/rthaines211/gutter-server/push"
 )
 
 func TestDeviceTokenUpsertUpdatesEnv(t *testing.T) {

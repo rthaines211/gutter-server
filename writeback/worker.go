@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/archive"
-	"github.com/ryanhaines/comic-reader/comicvine"
-	"github.com/ryanhaines/comic-reader/metadata"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/archive"
+	"github.com/rthaines211/gutter-server/comicvine"
+	"github.com/rthaines211/gutter-server/metadata"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // FileMutationGate lets the worker cooperate with scan/match/organize so no two

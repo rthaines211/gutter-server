@@ -10,10 +10,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/cache"
-	"github.com/ryanhaines/comic-reader/config"
-	"github.com/ryanhaines/comic-reader/match"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/cache"
+	"github.com/rthaines211/gutter-server/config"
+	"github.com/rthaines211/gutter-server/match"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 //go:embed static/*

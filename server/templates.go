@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ryanhaines/comic-reader/rename"
+	"github.com/rthaines211/gutter-server/rename"
 )
 
 var templateSampleFields = map[string]string{

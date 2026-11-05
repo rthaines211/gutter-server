@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/comicvine"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/comicvine"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // SyncSeriesResponse is a library series with its issues inline, as returned

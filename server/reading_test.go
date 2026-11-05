@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/cache"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/cache"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 func newTestServer(t *testing.T) *Server {

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // TestSyncScaleWithManyProgressRows times a full /sync pull (since=0, what

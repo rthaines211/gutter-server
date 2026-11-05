@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/server/admin"
+	"github.com/rthaines211/gutter-server/server/admin"
 )
 
 // The server-wide WriteTimeout (5m in prod) must not kill an SSE stream: a

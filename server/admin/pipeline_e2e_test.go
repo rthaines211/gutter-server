@@ -12,13 +12,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/match"
-	"github.com/ryanhaines/comic-reader/match/localcv"
-	"github.com/ryanhaines/comic-reader/notify"
-	"github.com/ryanhaines/comic-reader/server"
-	"github.com/ryanhaines/comic-reader/server/admin"
-	"github.com/ryanhaines/comic-reader/store"
-	"github.com/ryanhaines/comic-reader/writeback"
+	"github.com/rthaines211/gutter-server/match"
+	"github.com/rthaines211/gutter-server/match/localcv"
+	"github.com/rthaines211/gutter-server/notify"
+	"github.com/rthaines211/gutter-server/server"
+	"github.com/rthaines211/gutter-server/server/admin"
+	"github.com/rthaines211/gutter-server/store"
+	"github.com/rthaines211/gutter-server/writeback"
 )
 
 // writeOne is pipeCBZ (server/admin/pipeline_test.go) copied into package

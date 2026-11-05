@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // MatchRow is one series as shown in the review list.

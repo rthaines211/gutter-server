@@ -17,12 +17,12 @@ import (
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/ryanhaines/comic-reader/comicvine"
-	"github.com/ryanhaines/comic-reader/match/gcd/gcdtest"
-	"github.com/ryanhaines/comic-reader/match/localcv"
-	"github.com/ryanhaines/comic-reader/match/parse"
-	"github.com/ryanhaines/comic-reader/metron"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/comicvine"
+	"github.com/rthaines211/gutter-server/match/gcd/gcdtest"
+	"github.com/rthaines211/gutter-server/match/localcv"
+	"github.com/rthaines211/gutter-server/match/parse"
+	"github.com/rthaines211/gutter-server/metron"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // writeCBZ creates a CBZ whose single page holds the given bytes.

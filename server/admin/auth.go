@@ -15,7 +15,7 @@ func (a *Admin) requireAuth(next http.Handler) http.Handler {
 		}
 		_, pass, ok := r.BasicAuth()
 		if !ok || subtle.ConstantTimeCompare([]byte(pass), []byte(a.Config.AdminPassword)) != 1 {
-			w.Header().Set("WWW-Authenticate", `Basic realm="comic-reader admin", charset="UTF-8"`)
+			w.Header().Set("WWW-Authenticate", `Basic realm="Gutter", charset="UTF-8"`)
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}

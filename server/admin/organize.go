@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ryanhaines/comic-reader/organize"
+	"github.com/rthaines211/gutter-server/organize"
 )
 
 func (a *Admin) organizer() *organize.Organizer {

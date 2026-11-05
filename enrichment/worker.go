@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/comicvine"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/comicvine"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // VineClient is the subset of the ComicVine client the worker needs;

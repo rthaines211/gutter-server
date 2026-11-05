@@ -7,13 +7,13 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/ryanhaines/comic-reader/cache"
-	"github.com/ryanhaines/comic-reader/creators"
-	"github.com/ryanhaines/comic-reader/enrichment"
-	"github.com/ryanhaines/comic-reader/notify"
-	"github.com/ryanhaines/comic-reader/ocr"
-	"github.com/ryanhaines/comic-reader/server/admin"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/cache"
+	"github.com/rthaines211/gutter-server/creators"
+	"github.com/rthaines211/gutter-server/enrichment"
+	"github.com/rthaines211/gutter-server/notify"
+	"github.com/rthaines211/gutter-server/ocr"
+	"github.com/rthaines211/gutter-server/server/admin"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 type Server struct {
