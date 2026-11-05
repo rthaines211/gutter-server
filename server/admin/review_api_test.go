@@ -239,7 +239,7 @@ func TestReviewSearch(t *testing.T) {
 
 func TestReviewRoutesNotBehindAdminAuth(t *testing.T) {
 	e := newReviewEnv(t)
-	e.a.Config.AdminPassword = "s3cret"
+	e.a.Config.Password = "s3cret"
 	if w := e.do("GET", "/review", ""); w.Code != 200 {
 		t.Fatalf("got %d", w.Code)
 	}

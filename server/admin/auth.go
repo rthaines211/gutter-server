@@ -9,12 +9,12 @@ import (
 // set; empty means open. Any username is accepted.
 func (a *Admin) requireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if a.Config == nil || a.Config.AdminPassword == "" {
+		if a.Config == nil || a.Config.Password == "" {
 			next.ServeHTTP(w, r)
 			return
 		}
 		_, pass, ok := r.BasicAuth()
-		if !ok || subtle.ConstantTimeCompare([]byte(pass), []byte(a.Config.AdminPassword)) != 1 {
+		if !ok || subtle.ConstantTimeCompare([]byte(pass), []byte(a.Config.Password)) != 1 {
 			w.Header().Set("WWW-Authenticate", `Basic realm="Gutter", charset="UTF-8"`)
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return

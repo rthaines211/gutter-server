@@ -38,6 +38,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
+	if err := cfg.Validate(); err != nil {
+		log.Fatal(err)
+	}
+	if cfg.AuthOff {
+		log.Printf("WARNING: auth is OFF (GUTTER_AUTH=off) — anyone who can reach this port can read and change your library")
+	}
 
 	// Skip directory validation — NAS may be slow/offline.
 	// The scanner will handle missing dirs gracefully.
@@ -80,7 +86,7 @@ func main() {
 		srv.Enrichment = worker
 		log.Printf("enrichment: worker started (cache: %s)", enrichCacheDir)
 	} else {
-		log.Printf("enrichment: disabled (no COMICVINE_API_KEY / comicvine_api_key)")
+		log.Printf("enrichment: disabled (no GUTTER_COMICVINE_KEY / comicvine_api_key)")
 	}
 
 	if cfg.MylarURL != "" {

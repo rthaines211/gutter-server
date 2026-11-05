@@ -1,9 +1,12 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 
 	"gopkg.in/yaml.v3"
@@ -48,9 +51,11 @@ type Config struct {
 	// dev/staging) means push is off everywhere.
 	Push PushConfig `yaml:"push,omitempty"`
 
-	// AdminPassword turns on HTTP Basic auth for /_admin (any username).
-	// Empty turns it off: the console is open, as it was before.
-	AdminPassword string `yaml:"admin_password,omitempty"`
+	// Password is the Basic-auth password (any username); APIKey is the
+	// bearer token the app uses. AuthOff (GUTTER_AUTH=off) is env-only.
+	Password string `yaml:"password,omitempty"`
+	APIKey   string `yaml:"api_key,omitempty"`
+	AuthOff  bool   `yaml:"-"`
 
 	mu   sync.RWMutex
 	path string
@@ -73,7 +78,7 @@ func (c *Config) PushEnabled() bool {
 
 // PushKeyConfigured reports whether there's enough to send pushes. The host
 // watcher checks this, not PushEnabled: it never registers devices, and the
-// secret may live only in the container's PUSH_REGISTER_SECRET.
+// secret may live only in the container's GUTTER_PUSH_REGISTER_SECRET.
 func (c *Config) PushKeyConfigured() bool {
 	p := c.Push
 	return p.KeyPath != "" && p.KeyID != "" && p.TeamID != "" && p.BundleID != ""
@@ -91,22 +96,26 @@ func (c *Config) PushKeyPath() string {
 	return filepath.Join(c.Dir(), c.Push.KeyPath)
 }
 
+// Load reads path if it exists (a missing file is fine: defaults plus env
+// apply, and path is kept so Save creates it).
 func Load(path string) (*Config, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("reading config: %w", err)
-	}
 	cfg := &Config{
-		Port:                8080,
+		Port:                8081,
 		CacheMaxItems:       500,
-		DBPath:              "comic-reader.db",
+		DBPath:              "gutter.db",
 		CBRCacheMaxGB:       2,
 		TaggerPauseBetweenS: 30,
 		TaggerMinPages:      60,
 		path:                path,
 	}
-	if err := yaml.Unmarshal(data, cfg); err != nil {
-		return nil, fmt.Errorf("parsing config: %w", err)
+	data, err := os.ReadFile(path)
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return nil, fmt.Errorf("reading config: %w", err)
+	}
+	if err == nil {
+		if err := yaml.Unmarshal(data, cfg); err != nil {
+			return nil, fmt.Errorf("parsing config: %w", err)
+		}
 	}
 	// YAML can't tell a missing key from an empty one, so "off" is the
 	// explicit manual-only value and empty means the default.
@@ -117,24 +126,35 @@ func Load(path string) (*Config, error) {
 		cfg.CoverDir = filepath.Join(filepath.Dir(cfg.DBPath), "covers")
 	}
 	if len(cfg.ComicDirs) == 0 {
-		return nil, fmt.Errorf("comic_dirs must not be empty")
+		cfg.ComicDirs = []string{"/comics"}
 	}
-	if key := os.Getenv("COMICVINE_API_KEY"); key != "" {
-		cfg.ComicVineAPIKey = key
+	for env, dst := range map[string]*string{
+		"GUTTER_PASSWORD":             &cfg.Password,
+		"GUTTER_API_KEY":              &cfg.APIKey,
+		"GUTTER_COMICVINE_KEY":        &cfg.ComicVineAPIKey,
+		"GUTTER_METRON_USER":          &cfg.MetronUser,
+		"GUTTER_METRON_PASS":          &cfg.MetronPass,
+		"GUTTER_SCAN_INTERVAL":        &cfg.ScanInterval,
+		"GUTTER_MYLAR_URL":            &cfg.MylarURL,
+		"GUTTER_PUSH_REGISTER_SECRET": &cfg.Push.RegisterSecret,
+	} {
+		if v := os.Getenv(env); v != "" {
+			*dst = v
+		}
 	}
-	if v := os.Getenv("MYLAR_URL"); v != "" {
-		cfg.MylarURL = v
-	}
-	if v := os.Getenv("METRON_USER"); v != "" {
-		cfg.MetronUser = v
-	}
-	if v := os.Getenv("METRON_PASS"); v != "" {
-		cfg.MetronPass = v
-	}
-	if v := os.Getenv("PUSH_REGISTER_SECRET"); v != "" {
-		cfg.Push.RegisterSecret = v
+	cfg.AuthOff = os.Getenv("GUTTER_AUTH") == "off"
+	if v, err := strconv.ParseBool(os.Getenv("GUTTER_WRITEBACK")); err == nil && !v {
+		cfg.WritebackDisabled = true
 	}
 	return cfg, nil
+}
+
+// Validate refuses to run without a password unless auth is explicitly off.
+func (c *Config) Validate() error {
+	if c.Password == "" && !c.AuthOff {
+		return errors.New("GUTTER_PASSWORD is required (set it, or GUTTER_AUTH=off to run without auth)")
+	}
+	return nil
 }
 
 func (c *Config) Save() error {
@@ -146,7 +166,8 @@ func (c *Config) Save() error {
 	if err != nil {
 		return fmt.Errorf("marshaling config: %w", err)
 	}
-	return os.WriteFile(c.path, data, 0644)
+	// ponytail: env secrets can land in the saved file; 0600 is the guard, split file/env state if that ever matters
+	return os.WriteFile(c.path, data, 0600)
 }
 
 func (c *Config) AddDir(dir string) error {
