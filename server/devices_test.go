@@ -77,3 +77,14 @@ func TestDevicesRejectsBadBody(t *testing.T) {
 		}
 	}
 }
+
+func TestDevicesRegisterWithGlobalAuthOn(t *testing.T) {
+	srv := devicesServer(t, "s3cret")
+	srv.AuthOff, srv.Password = false, "pw"
+	if c := doDevices(t, srv, "POST", "/devices", basic("x", "pw"), `{"token":"abc","env":"sandbox"}`); c != 204 {
+		t.Fatalf("POST with Basic = %d", c)
+	}
+	if c := doDevices(t, srv, "POST", "/devices", "", `{"token":"abc","env":"sandbox"}`); c != 401 {
+		t.Fatalf("POST without creds = %d", c)
+	}
+}

@@ -75,3 +75,13 @@ func TestRouterCORSAllowsAuthorization(t *testing.T) {
 		t.Fatalf("code=%d headers=%q", rec.Code, rec.Header().Get("Access-Control-Allow-Headers"))
 	}
 }
+
+func TestRequireAuthEmptyPasswordNeverMatches(t *testing.T) {
+	req := httptest.NewRequest("GET", "/library", nil)
+	req.Header.Set("Authorization", basic("x", ""))
+	rec := httptest.NewRecorder()
+	RequireAuth(okHandler, "", "").ServeHTTP(rec, req)
+	if rec.Code != 401 {
+		t.Fatalf("got %d want 401", rec.Code)
+	}
+}

@@ -9,11 +9,16 @@ import (
 )
 
 // authorizePush gates the device endpoints. The API is otherwise open and
-// publicly reachable, so registration must not be.
+// publicly reachable, so registration must not be. With global auth on the
+// middleware has already vetted the caller; the push secret only matters when
+// auth is off.
 func (s *Server) authorizePush(w http.ResponseWriter, r *http.Request) bool {
 	if s.PushSecret == "" {
 		http.NotFound(w, r)
 		return false
+	}
+	if !s.AuthOff {
+		return true // RequireAuth already authenticated the caller
 	}
 	got, ok := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
 	if !ok || subtle.ConstantTimeCompare([]byte(got), []byte(s.PushSecret)) != 1 {

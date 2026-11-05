@@ -40,7 +40,7 @@ type Server struct {
 	Password string
 	APIKey   string
 	AuthOff  bool
-	Notifier   *notify.Notifier
+	Notifier *notify.Notifier
 
 	// lastPageServed is the unix-nano time the reader last served a comic page;
 	// the tagger worker yields while this is recent.

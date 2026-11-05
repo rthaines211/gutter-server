@@ -18,7 +18,7 @@ func RequireAuth(next http.Handler, password, apiKey string) http.Handler {
 		}
 		ok := false
 		if _, pass, has := r.BasicAuth(); has {
-			ok = eq(pass, password)
+			ok = password != "" && eq(pass, password)
 		} else if tok, found := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer "); found {
 			// An empty configured key must never match an empty token.
 			ok = apiKey != "" && eq(tok, apiKey)
