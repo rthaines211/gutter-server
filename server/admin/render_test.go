@@ -80,8 +80,8 @@ func TestAllScreensRender(t *testing.T) {
 				t.Errorf("GET %s: body not fully rendered (no </html>)", s.path)
 			}
 			// The redesign's shell markers — brand mark and stylesheet.
-			if !strings.Contains(body, "LONGBOX") {
-				t.Errorf("GET %s: missing Longbox wordmark", s.path)
+			if !strings.Contains(body, "GUTTER") {
+				t.Errorf("GET %s: missing Gutter wordmark", s.path)
 			}
 			// html/template rewrites a value it can't prove safe in a CSS
 			// context to ZgotmplZ, which silently renders the element
