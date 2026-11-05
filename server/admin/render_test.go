@@ -192,3 +192,28 @@ func TestOverviewMatchWidgets(t *testing.T) {
 		}
 	}
 }
+
+// CI stamps Version without a "v" (metadata-action's "0.1.0"); the templates
+// add it, except for dev builds.
+func TestVersionPrefix(t *testing.T) {
+	st, err := store.NewStore(t.TempDir() + "/app.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+	a, err := New(st, cache.NewLRU(16), []string{t.TempDir()}, "", "", 8081, NewRequestLog(64), NewScanState())
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.Config = &config.Config{Port: 8081, ComicDirs: []string{t.TempDir()}}
+	defer func(v string) { Version = v }(Version)
+	for v, want := range map[string]string{"0.1.0": "v0.1.0", "dev": "8081 · dev"} {
+		Version = v
+		rec := httptest.NewRecorder()
+		newTestMux(a).ServeHTTP(rec, httptest.NewRequest("GET", "/_admin/config", nil))
+		body := rec.Body.String()
+		if !strings.Contains(body, want) || strings.Contains(body, "vv") || strings.Contains(body, "vdev") {
+			t.Errorf("Version %q: want %q, no vv/vdev", v, want)
+		}
+	}
+}

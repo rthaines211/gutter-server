@@ -70,7 +70,7 @@
     <div class="card-sm">
       <div class="stat-label">Process</div>
       <div class="mt-10 flex-col" style="gap:4px">
-        <div class="kv"><span class="kv-key">Binary</span><span class="kv-val">gutter@v{{$d.Process.Version}}</span></div>
+        <div class="kv"><span class="kv-key">Binary</span><span class="kv-val">gutter@{{if ne $d.Process.Version "dev"}}v{{end}}{{$d.Process.Version}}</span></div>
         <div class="kv"><span class="kv-key">Go</span><span class="kv-val">{{$d.Process.GoVersion}}</span></div>
         <div class="kv"><span class="kv-key">PID</span><span class="kv-val">{{$d.Process.PID}}</span></div>
         <div class="kv"><span class="kv-key">Started</span><span class="kv-val">{{$d.Process.StartedAt}}</span></div>

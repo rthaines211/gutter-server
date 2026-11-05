@@ -71,7 +71,7 @@
       <div class="card-sm" style="display:flex;align-items:center;gap:10px">
         <span class="status-dot status-dot-green status-dot-pulse" style="width:8px;height:8px"></span>
         <span class="mono" style="font-size:10.5px;color:var(--text-tertiary);line-height:1.5;min-width:0">
-          <span style="display:block;font-weight:700;color:var(--text-primary)">:{{.Port}} · v{{.Version}}</span>
+          <span style="display:block;font-weight:700;color:var(--text-primary)">:{{.Port}} · {{if ne .Version "dev"}}v{{end}}{{.Version}}</span>
           <span style="display:block">up {{.Uptime}}</span>
         </span>
       </div>
