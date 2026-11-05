@@ -2,13 +2,15 @@
 
 A self-hosted comic library server (Go + SQLite) for the
 [Gutter](https://github.com/rthaines211/gutter) iPad/iPhone reader. It scans a
-folder of CBZ/CBR/PDF comics, serves pages and covers, and syncs reading
-progress.
+comics folder laid out as one folder per series, CBZ/CBR files inside
+(`<comics>/<Series>/*.cbz`), serves pages and covers, and syncs reading
+progress. Loose files at the top level, deeper subfolders and PDFs are skipped.
 
 ## Quick start
 
 1. Download [`compose.yaml`](compose.yaml).
-2. Edit it: set the comics path (`/path/to/your/comics`) and `GUTTER_PASSWORD`
+2. Edit it: point the comics path (`/path/to/your/comics`) at the folder that
+   holds one folder per series, with CBZ/CBR files inside, and set `GUTTER_PASSWORD`
    (the server refuses to start with the placeholder `change-me`).
 3. Start it:
 
