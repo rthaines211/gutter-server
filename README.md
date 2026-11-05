@@ -1,26 +1,32 @@
 # Gutter Server
 
-A self-hosted comic library server (Go + SQLite) and the optional power-user
-backend for the [Gutter](https://github.com/rthaines211/gutter) iPad/iPhone
-reader. It scans a folder of CBZ/CBR/PDF comics, serves pages and covers, and
-syncs reading progress.
+A self-hosted comic library server (Go + SQLite) for the
+[Gutter](https://github.com/rthaines211/gutter) iPad/iPhone reader. It scans a
+folder of CBZ/CBR/PDF comics, serves pages and covers, and syncs reading
+progress.
 
-## Run
+## Quick start
 
-```sh
-cp config.example.yaml config.yaml   # set the library path, ports, optional API keys
-docker build -t gutter-server .
-docker run -p 8081:8081 \
-           -v $PWD/config.yaml:/data/config.yaml \
-           -v /path/to/comics:/comics gutter-server
-```
+1. Download [`compose.yaml`](compose.yaml).
+2. Edit it: set the comics path (`/path/to/your/comics`) and `GUTTER_PASSWORD`.
+3. Start it:
 
-The API has no authentication yet: keep it on your LAN or behind a VPN, and
-don't expose it to the internet. Set `admin_password` in `config.yaml` to protect
-the `/_admin` console.
+   ```sh
+   docker compose up -d
+   ```
 
-Metadata matching uses your own ComicVine API key (`comicvine_api_key` in
-`config.yaml`) or Metron credentials; none ship with the server.
+4. Open `http://<host>:8081`. Sign in with any username and your password. The
+   first scan of an empty library starts on its own, and this page shows its
+   progress. The admin console is at `/_admin/`.
+5. In Gutter, add the server address (`http://<host>:8081`) and enter the
+   password when asked.
+
+Your library is mounted read-only, so Gutter never changes your files.
+
+## Docs
+
+- [Configuration reference](docs/CONFIG.md)
+- [Remote access](docs/REMOTE-ACCESS.md)
 
 ## License
 
