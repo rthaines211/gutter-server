@@ -7,7 +7,8 @@
 # to OUT_DIR on the host. For the shipped compose.yaml (./data bind mount), run
 # from the compose dir:  VOLUME=$PWD/data scripts/gutter-db-backup.sh
 # (Docker accepts a host path for -v). Settings (env): VOLUME (default gutter-db), DB_FILE
-# (default gutter.db), STACK_DIR (default $HOME/gutter), OUT_DIR, NAME, KEEP.
+# (default gutter.db), STACK_DIR (default $HOME/gutter), OUT_DIR (default
+# $VOLUME/db-backups for a host path, else $STACK_DIR/data/db-backups), NAME, KEEP.
 #
 # Uses sqlite3's online .backup API, not cp: it takes the right locks, so it is
 # safe against a running server and never captures a torn WAL.
@@ -17,7 +18,11 @@ export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
 STACK_DIR="${STACK_DIR:-$HOME/gutter}"
 VOLUME="${VOLUME:-gutter-db}"
 DB_FILE="${DB_FILE:-gutter.db}"
-OUT_DIR="${OUT_DIR:-$STACK_DIR/data/db-backups}"
+# A host-path VOLUME (the ./data bind mount) keeps its snapshots beside the DB.
+case "$VOLUME" in
+  /* | .*) OUT_DIR="${OUT_DIR:-$VOLUME/db-backups}" ;;
+  *) OUT_DIR="${OUT_DIR:-$STACK_DIR/data/db-backups}" ;;
+esac
 KEEP="${KEEP:-7}"
 # deploy.sh passes NAME=predeploy so its snapshots prune separately from nightly ones.
 NAME="${NAME:-gutter}"
