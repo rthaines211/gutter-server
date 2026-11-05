@@ -6,6 +6,8 @@
   <key>ProgramArguments</key>
   <array>
     <string>__HOME__/bin/comic-pushwatch</string>
+    <string>-url</string>
+    <string>__URL__</string>
   </array>
   <key>StartInterval</key><integer>600</integer>
   <key>RunAtLoad</key><true/>
