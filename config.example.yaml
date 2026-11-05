@@ -2,7 +2,7 @@ port: 8081
 comic_dirs:
   - /comics
 cache_max_items: 500
-db_path: comic-reader.db
+db_path: gutter.db
 
 # Matching needs your own ComicVine dump. Metron, GCD and comicvine_api_key only add to it.
 # Path to the offline ComicVine dump. Read-only. Matching is disabled when unset.

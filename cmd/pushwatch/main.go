@@ -20,7 +20,7 @@ import (
 
 func main() {
 	home, _ := os.UserHomeDir()
-	cfgPath := flag.String("config", filepath.Join(home, "docker/stacks/media-servers/comic-reader/config/config.yaml"), "host path to the server's config.yaml")
+	cfgPath := flag.String("config", "config.yaml", "host path to the server's config.yaml")
 	url := flag.String("url", "", "public healthz URL, e.g. https://comics.example.com/healthz (required)")
 	statePath := flag.String("state", filepath.Join(home, "Library/Application Support/comic-pushwatch/state.json"), "state file")
 	flag.Parse()
