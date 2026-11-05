@@ -5,7 +5,7 @@ set -euo pipefail
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 case "$REPO" in
   */.claude/worktrees/*)
-    echo "Run this from ~/projects/comic-reader after merging: launchd keeps running the checkout it was" >&2
+    echo "Run this from ~/projects/gutter-server after merging: launchd keeps running the checkout it was" >&2
     echo "installed from, and worktrees get deleted." >&2
     exit 1 ;;
 esac

@@ -14,13 +14,13 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ryanhaines/comic-reader/comicvine"
-	"github.com/ryanhaines/comic-reader/match/gcd"
-	"github.com/ryanhaines/comic-reader/match/localcv"
-	"github.com/ryanhaines/comic-reader/match/pagehash"
-	"github.com/ryanhaines/comic-reader/match/parse"
-	"github.com/ryanhaines/comic-reader/metron"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/comicvine"
+	"github.com/rthaines211/gutter-server/match/gcd"
+	"github.com/rthaines211/gutter-server/match/localcv"
+	"github.com/rthaines211/gutter-server/match/pagehash"
+	"github.com/rthaines211/gutter-server/match/parse"
+	"github.com/rthaines211/gutter-server/metron"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // MethodFirstPageMD5 records how a match was reached, so the console can show

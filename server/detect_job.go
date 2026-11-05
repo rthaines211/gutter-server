@@ -4,7 +4,7 @@ package server
 import (
 	"sync"
 
-	"github.com/ryanhaines/comic-reader/metadata"
+	"github.com/rthaines211/gutter-server/metadata"
 )
 
 type detectState string

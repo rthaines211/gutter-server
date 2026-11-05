@@ -7,8 +7,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/match"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/match"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 const (

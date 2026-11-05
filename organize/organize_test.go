@@ -2,14 +2,14 @@ package organize
 
 import (
 	"database/sql"
-	"github.com/ryanhaines/comic-reader/rename"
+	"github.com/rthaines211/gutter-server/rename"
 	"strconv"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/ryanhaines/comic-reader/match"
-	"github.com/ryanhaines/comic-reader/match/localcv"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/match"
+	"github.com/rthaines211/gutter-server/match/localcv"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // newCVFixture builds the offline ComicVine dump used by every test here:

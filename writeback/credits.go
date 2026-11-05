@@ -3,8 +3,8 @@ package writeback
 import (
 	"strings"
 
-	"github.com/ryanhaines/comic-reader/metadata"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/metadata"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // roleField maps a normalized ComicVine role to a pointer-selector over the

@@ -1,4 +1,4 @@
-// Command pushwatch runs on the host Mac from launchd and pushes "comic-reader
+// Command pushwatch runs on the host Mac from launchd and pushes "gutter
 // is down" when /healthz keeps failing — the one alert the server can't send
 // itself. One tick per run; launchd supplies the interval.
 package main
@@ -14,13 +14,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/config"
-	"github.com/ryanhaines/comic-reader/push"
+	"github.com/rthaines211/gutter-server/config"
+	"github.com/rthaines211/gutter-server/push"
 )
 
 func main() {
 	home, _ := os.UserHomeDir()
-	cfgPath := flag.String("config", filepath.Join(home, "docker/stacks/media-servers/comic-reader/config/config.yaml"), "host path to the server's config.yaml")
+	cfgPath := flag.String("config", "config.yaml", "host path to the server's config.yaml")
 	url := flag.String("url", "", "public healthz URL, e.g. https://comics.example.com/healthz (required)")
 	statePath := flag.String("state", filepath.Join(home, "Library/Application Support/comic-pushwatch/state.json"), "state file")
 	flag.Parse()

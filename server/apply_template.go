@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ryanhaines/comic-reader/rename"
+	"github.com/rthaines211/gutter-server/rename"
 )
 
 // applyTemplateResult is the per-issue result returned by HandleApplyTemplate.

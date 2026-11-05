@@ -13,9 +13,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/match"
-	"github.com/ryanhaines/comic-reader/match/localcv"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/match"
+	"github.com/rthaines211/gutter-server/match/localcv"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 func pipeCBZ(t *testing.T, path string, page []byte) string {

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/cache"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/cache"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // twinLib lays out the production shape: the organized folder holds #1-#2

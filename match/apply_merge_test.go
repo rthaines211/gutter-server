@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/ryanhaines/comic-reader/match/gcd"
-	"github.com/ryanhaines/comic-reader/match/gcd/gcdtest"
-	"github.com/ryanhaines/comic-reader/match/localcv"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/match/gcd"
+	"github.com/rthaines211/gutter-server/match/gcd/gcdtest"
+	"github.com/rthaines211/gutter-server/match/localcv"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // cvDumpSchema is the same minimal ComicVine dump schema newCVFixtureVolumes

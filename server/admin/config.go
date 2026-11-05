@@ -69,7 +69,7 @@ func (a *Admin) handleConfig(w http.ResponseWriter, r *http.Request) {
 	uptime := time.Since(a.StartedAt).Truncate(time.Second)
 
 	proc := ProcessInfo{
-		Version:    "0.4.2",
+		Version:    Version,
 		GoVersion:  runtime.Version(),
 		PID:        os.Getpid(),
 		StartedAt:  a.StartedAt.Format("2006-01-02 15:04:05"),

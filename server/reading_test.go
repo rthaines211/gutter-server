@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/cache"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/cache"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 func newTestServer(t *testing.T) *Server {
@@ -18,7 +18,7 @@ func newTestServer(t *testing.T) *Server {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { s.Close() })
-	return &Server{ComicDirs: []string{t.TempDir()}, Store: s, Cache: cache.NewLRU(10)}
+	return &Server{ComicDirs: []string{t.TempDir()}, Store: s, Cache: cache.NewLRU(10), AuthOff: true}
 }
 
 func TestBatchReading(t *testing.T) {

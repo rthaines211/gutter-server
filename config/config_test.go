@@ -136,8 +136,8 @@ func TestMetronCredentials(t *testing.T) {
 		t.Errorf("yaml creds not loaded: %q/%q", cfg.MetronUser, cfg.MetronPass)
 	}
 
-	t.Setenv("METRON_USER", "bob")
-	t.Setenv("METRON_PASS", "hunter2")
+	t.Setenv("GUTTER_METRON_USER", "bob")
+	t.Setenv("GUTTER_METRON_PASS", "hunter2")
 	cfg, err = Load(path)
 	if err != nil {
 		t.Fatal(err)
@@ -292,7 +292,7 @@ func TestNoPushBlockDisabled(t *testing.T) {
 func TestPushSecretEnvOverride(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.yaml")
 	os.WriteFile(path, []byte(pushYAML), 0644)
-	t.Setenv("PUSH_REGISTER_SECRET", "fromenv")
+	t.Setenv("GUTTER_PUSH_REGISTER_SECRET", "fromenv")
 	cfg, err := Load(path)
 	if err != nil {
 		t.Fatal(err)
@@ -317,9 +317,9 @@ func TestPushKeyConfiguredIgnoresSecret(t *testing.T) {
 	}
 }
 
-func TestSaveRoundTripsBubblesDirAndAdminPassword(t *testing.T) {
+func TestSaveRoundTripsBubblesDirAndPassword(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.yaml")
-	os.WriteFile(path, []byte("comic_dirs: [/c]\nbubbles_dir: /b\nadmin_password: pw\n"), 0644)
+	os.WriteFile(path, []byte("comic_dirs: [/c]\nbubbles_dir: /b\npassword: pw\n"), 0644)
 	cfg, err := Load(path)
 	if err != nil {
 		t.Fatal(err)
@@ -328,7 +328,168 @@ func TestSaveRoundTripsBubblesDirAndAdminPassword(t *testing.T) {
 		t.Fatal(err)
 	}
 	got, _ := Load(path)
-	if got.BubblesDir != "/b" || got.AdminPassword != "pw" {
-		t.Fatalf("after Save: bubbles_dir=%q admin_password=%q", got.BubblesDir, got.AdminPassword)
+	if got.BubblesDir != "/b" || got.Password != "pw" {
+		t.Fatalf("after Save: bubbles_dir=%q password=%q", got.BubblesDir, got.Password)
+	}
+}
+
+func TestLoadMissingFileUsesDefaultsAndEnv(t *testing.T) {
+	t.Setenv("GUTTER_PASSWORD", "pw")
+	t.Setenv("GUTTER_API_KEY", "k")
+	t.Setenv("GUTTER_SCAN_INTERVAL", "5m")
+	t.Setenv("GUTTER_WRITEBACK", "false")
+	cfg, err := Load(filepath.Join(t.TempDir(), "config.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Port != 8081 || cfg.DBPath != "gutter.db" || cfg.ComicDirs[0] != "/comics" {
+		t.Fatalf("defaults: %+v", cfg)
+	}
+	if cfg.Password != "pw" || cfg.APIKey != "k" || cfg.ScanInterval != "5m" || !cfg.WritebackDisabled {
+		t.Fatalf("env: %+v", cfg)
+	}
+}
+
+func TestEnvOverridesFile(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	os.WriteFile(path, []byte("password: a\nmetron_user: x\n"), 0644)
+	t.Setenv("GUTTER_PASSWORD", "b")
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Password != "b" || cfg.MetronUser != "x" {
+		t.Fatalf("got %q / %q", cfg.Password, cfg.MetronUser)
+	}
+}
+
+func TestValidate(t *testing.T) {
+	if err := (&Config{}).Validate(); err == nil || !strings.Contains(err.Error(), "GUTTER_PASSWORD") {
+		t.Fatalf("empty password: %v", err)
+	}
+	if err := (&Config{Password: "x"}).Validate(); err != nil {
+		t.Fatal(err)
+	}
+	if err := (&Config{Password: "change-me"}).Validate(); err == nil || !strings.Contains(err.Error(), "change-me") {
+		t.Fatalf("placeholder password: %v", err)
+	}
+	t.Setenv("GUTTER_AUTH", "off")
+	cfg, _ := Load(filepath.Join(t.TempDir(), "c.yaml"))
+	if !cfg.AuthOff || cfg.Validate() != nil {
+		t.Fatalf("auth off: %+v", cfg)
+	}
+}
+
+func TestSaveCreatesMissingFile0600(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := cfg.Save(); err != nil {
+		t.Fatal(err)
+	}
+	st, err := os.Stat(path)
+	if err != nil || st.Mode().Perm() != 0o600 {
+		t.Fatalf("stat: %v %v", st, err)
+	}
+}
+
+func TestWritebackEnvAppliesBothWays(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "c.yaml")
+	os.WriteFile(path, []byte("writeback_disabled: true\n"), 0o600)
+	for env, want := range map[string]bool{"": true, "junk": true, "true": false, "false": true} {
+		t.Setenv("GUTTER_WRITEBACK", env)
+		cfg, err := Load(path)
+		if err != nil || cfg.WritebackDisabled != want {
+			t.Fatalf("env %q: disabled=%v want %v (%v)", env, cfg.WritebackDisabled, want, err)
+		}
+	}
+}
+
+func TestSaveNeverPersistsEnvValues(t *testing.T) {
+	path := writeCfg(t, "comic_dirs: [/c]\nmetron_user: fileuser\n")
+	t.Setenv("GUTTER_PASSWORD", "envpass")
+	t.Setenv("GUTTER_API_KEY", "envkey")
+	t.Setenv("GUTTER_COMICVINE_KEY", "envcv")
+	t.Setenv("GUTTER_METRON_USER", "envuser")
+	t.Setenv("GUTTER_PUSH_REGISTER_SECRET", "envsecret")
+	t.Setenv("GUTTER_SCAN_INTERVAL", "5m")
+	t.Setenv("GUTTER_WRITEBACK", "true")
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := cfg.AddDir("/more"); err != nil { // console change triggers Save
+		t.Fatal(err)
+	}
+	b, _ := os.ReadFile(path)
+	for _, leak := range []string{"envpass", "envkey", "envcv", "envuser", "envsecret", "5m"} {
+		if strings.Contains(string(b), leak) {
+			t.Errorf("saved file contains env value %q:\n%s", leak, b)
+		}
+	}
+	if !strings.Contains(string(b), "fileuser") || !strings.Contains(string(b), "/more") ||
+		!strings.Contains(string(b), "writeback_disabled: true") {
+		t.Errorf("file values or console change lost:\n%s", b)
+	}
+	// The running config keeps the env values.
+	if cfg.Password != "envpass" || cfg.ScanInterval != "5m" || cfg.WritebackDisabled {
+		t.Errorf("in-memory env values changed: %+v", cfg)
+	}
+}
+
+func TestSetScanIntervalPersistsUnderEnv(t *testing.T) {
+	path := writeCfg(t, "comic_dirs: [/c]\n")
+	t.Setenv("GUTTER_SCAN_INTERVAL", "5m")
+	cfg, _ := Load(path)
+	if err := cfg.SetScanInterval("2h"); err != nil {
+		t.Fatal(err)
+	}
+	if b, _ := os.ReadFile(path); !strings.Contains(string(b), "scan_interval: 2h") {
+		t.Fatalf("console interval not saved:\n%s", b)
+	}
+	if again, _ := Load(path); again.ScanInterval != "5m" {
+		t.Fatalf("env must still win at next start, got %q", again.ScanInterval)
+	}
+}
+
+func TestSaveTightensExistingFileTo0600(t *testing.T) {
+	path := writeCfg(t, "comic_dirs: [/c]\n") // written 0644
+	cfg, _ := Load(path)
+	if err := cfg.Save(); err != nil {
+		t.Fatal(err)
+	}
+	if st, _ := os.Stat(path); st.Mode().Perm() != 0o600 {
+		t.Fatalf("mode = %v, want 0600", st.Mode().Perm())
+	}
+}
+
+func TestSaveCreatesMissingParentDir(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "data", "config.yaml")
+	cfg, _ := Load(path)
+	if err := cfg.Save(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(path); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestWritebackOffByDefault(t *testing.T) {
+	cfg, _ := Load(filepath.Join(t.TempDir(), "none.yaml"))
+	if !cfg.WritebackDisabled {
+		t.Fatal("writeback must be off without a config or env opt-in")
+	}
+	path := writeCfg(t, "writeback_disabled: false\n")
+	cfg, _ = Load(path)
+	if cfg.WritebackDisabled {
+		t.Fatal("writeback_disabled: false must enable writeback")
+	}
+	if err := cfg.Save(); err != nil {
+		t.Fatal(err)
+	}
+	if again, _ := Load(path); again.WritebackDisabled {
+		t.Fatal("a saved false must survive the true default")
 	}
 }

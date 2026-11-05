@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/server/admin"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/server/admin"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // createTestCBZ creates a minimal .cbz file with a ComicInfo.xml and a fake page image.

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/ryanhaines/comic-reader/match/gcd"
+	"github.com/rthaines211/gutter-server/match/gcd"
 )
 
 // Schema is the minimal GCD schema. Column names and the country/language

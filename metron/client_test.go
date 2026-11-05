@@ -145,9 +145,9 @@ func TestDiskCache(t *testing.T) {
 // loudly. Run once during implementation: the recorded files document the
 // real shapes.
 func TestRecordLiveFixtures(t *testing.T) {
-	user, pass := os.Getenv("METRON_USER"), os.Getenv("METRON_PASS")
+	user, pass := os.Getenv("GUTTER_METRON_USER"), os.Getenv("GUTTER_METRON_PASS")
 	if user == "" || pass == "" {
-		t.Skip("METRON_USER/METRON_PASS not set")
+		t.Skip("GUTTER_METRON_USER/GUTTER_METRON_PASS not set")
 	}
 	c := New(user, pass, "testdata/livecache")
 	s, err := c.SeriesByCVID(49019) // Saga (2012)

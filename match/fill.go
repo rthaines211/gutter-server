@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/ryanhaines/comic-reader/match/localcv"
-	"github.com/ryanhaines/comic-reader/match/pagehash"
-	"github.com/ryanhaines/comic-reader/match/parse"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/match/localcv"
+	"github.com/rthaines211/gutter-server/match/pagehash"
+	"github.com/rthaines211/gutter-server/match/parse"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // Misfiled is a file in a confirmed folder whose first-page hash belongs to

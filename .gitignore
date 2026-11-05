@@ -1,10 +1,14 @@
 # Built binary
 /comic-reader
+/gutter
 
 # Local SQLite state
 comic-reader.db
 comic-reader.db-shm
 comic-reader.db-wal
+gutter.db
+gutter.db-shm
+gutter.db-wal
 
 # Offline metadata dumps (multi-GB, fetched out of band, never committed)
 localcv.db

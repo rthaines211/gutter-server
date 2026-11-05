@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ryanhaines/comic-reader/creators"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/creators"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // CreatorListEntry is one entry of GET /creators: a library creator grouped

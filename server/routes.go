@@ -10,6 +10,7 @@ type RouteInfo struct {
 
 // RouteRegistry lists all API routes with metadata.
 var RouteRegistry = []RouteInfo{
+	{"GET", "/{$}", "Health", "Status page: scan progress and server URL"},
 	{"GET", "/healthz", "Health", "Health check"},
 	{"GET", "/browse", "Browse", "List directory contents"},
 	{"GET", "/library", "Library", "List all series with filtering and sorting"},

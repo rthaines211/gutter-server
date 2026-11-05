@@ -4,9 +4,13 @@
 .playwright-mcp
 .superpowers
 comic-reader
+gutter
 comic-reader.db
 comic-reader.db-shm
 comic-reader.db-wal
+gutter.db
+gutter.db-shm
+gutter.db-wal
 covers/
 cbr_cache/
 config.yaml

@@ -119,7 +119,7 @@ func (c *Client) Send(ctx context.Context, d Device, n Notification) error {
 		"aps": map[string]any{
 			"alert":     map[string]string{"title": n.Title, "body": n.Body},
 			"sound":     "default",
-			"thread-id": "comic-reader",
+			"thread-id": "gutter",
 		},
 	}
 	if n.Screen != "" {

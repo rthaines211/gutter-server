@@ -5,8 +5,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/ocr"
-	"github.com/ryanhaines/comic-reader/tagger"
+	"github.com/rthaines211/gutter-server/ocr"
+	"github.com/rthaines211/gutter-server/tagger"
 )
 
 // notePageServed records that the reader just served a page; the tagger worker

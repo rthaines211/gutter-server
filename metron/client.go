@@ -109,7 +109,7 @@ func (c *Client) get(path string, params url.Values) ([]byte, error) {
 		return nil, err
 	}
 	req.SetBasicAuth(c.user, c.pass)
-	req.Header.Set("User-Agent", "comic-reader-enrichment/1.0 (self-hosted)")
+	req.Header.Set("User-Agent", "gutter-enrichment/1.0 (self-hosted)")
 	resp, err := c.http.Do(req)
 	if err != nil {
 		return nil, err

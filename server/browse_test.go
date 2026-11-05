@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/cache"
+	"github.com/rthaines211/gutter-server/cache"
 )
 
 func TestBrowseRoot(t *testing.T) {

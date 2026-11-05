@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/config"
-	"github.com/ryanhaines/comic-reader/match"
-	"github.com/ryanhaines/comic-reader/match/localcv"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/config"
+	"github.com/rthaines211/gutter-server/match"
+	"github.com/rthaines211/gutter-server/match/localcv"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 const (
@@ -239,7 +239,7 @@ func TestReviewSearch(t *testing.T) {
 
 func TestReviewRoutesNotBehindAdminAuth(t *testing.T) {
 	e := newReviewEnv(t)
-	e.a.Config.AdminPassword = "s3cret"
+	e.a.Config.Password = "s3cret"
 	if w := e.do("GET", "/review", ""); w.Code != 200 {
 		t.Fatalf("got %d", w.Code)
 	}

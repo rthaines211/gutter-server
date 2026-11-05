@@ -3,8 +3,8 @@ package writeback
 import (
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/metadata"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/metadata"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 func TestApplyCredits(t *testing.T) {

@@ -147,7 +147,7 @@ func TestSendRequestShape(t *testing.T) {
 	}
 	aps, _ := got.body["aps"].(map[string]any)
 	alert, _ := aps["alert"].(map[string]any)
-	if alert["title"] != "T" || alert["body"] != "B" || aps["sound"] != "default" || aps["thread-id"] != "comic-reader" {
+	if alert["title"] != "T" || alert["body"] != "B" || aps["sound"] != "default" || aps["thread-id"] != "gutter" {
 		t.Fatalf("aps = %+v", aps)
 	}
 	if got.body["screen"] != "review" {

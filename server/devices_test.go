@@ -5,14 +5,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/notify"
-	"github.com/ryanhaines/comic-reader/push"
+	"github.com/rthaines211/gutter-server/notify"
+	"github.com/rthaines211/gutter-server/push"
 )
 
 func devicesServer(t *testing.T, secret string) *Server {
 	t.Helper()
 	st := newIntegrationTestStore(t)
-	return &Server{Store: st, PushSecret: secret,
+	return &Server{Store: st, PushSecret: secret, AuthOff: true,
 		Notifier: &notify.Notifier{Store: st, DevicesPath: t.TempDir() + "/push_devices.json"}}
 }
 
@@ -75,5 +75,16 @@ func TestDevicesRejectsBadBody(t *testing.T) {
 		if c := doDevices(t, srv, "POST", "/devices", "Bearer s3cret", body); c != 400 {
 			t.Fatalf("body %s: %d", body, c)
 		}
+	}
+}
+
+func TestDevicesRegisterWithGlobalAuthOn(t *testing.T) {
+	srv := devicesServer(t, "s3cret")
+	srv.AuthOff, srv.Password = false, "pw"
+	if c := doDevices(t, srv, "POST", "/devices", basic("x", "pw"), `{"token":"abc","env":"sandbox"}`); c != 204 {
+		t.Fatalf("POST with Basic = %d", c)
+	}
+	if c := doDevices(t, srv, "POST", "/devices", "", `{"token":"abc","env":"sandbox"}`); c != 401 {
+		t.Fatalf("POST without creds = %d", c)
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/server/admin"
+	"github.com/rthaines211/gutter-server/server/admin"
 )
 
 // The server-wide WriteTimeout (5m in prod) must not kill an SSE stream: a
@@ -16,7 +16,7 @@ import (
 // request-log middleware exactly as prod is, since the recorder sits between
 // the handler and the connection.
 func TestRemoteStreamOutlivesServerWriteTimeout(t *testing.T) {
-	srv := &Server{}
+	srv := &Server{AuthOff: true}
 	ts := httptest.NewUnstartedServer(admin.NewRequestLog(10).Middleware(srv.NewRouter()))
 	ts.Config.WriteTimeout = 300 * time.Millisecond
 	ts.Start()
@@ -77,7 +77,7 @@ func (f *failingWriter) Write([]byte) (int, error) {
 // A stream whose writes fail must unsubscribe, so commands get 409 instead of
 // a 204 into a dead channel.
 func TestRemoteStreamExitsOnWriteError(t *testing.T) {
-	srv := &Server{}
+	srv := &Server{AuthOff: true}
 	req := httptest.NewRequest(http.MethodGet, "/remote/events?role=reader", nil)
 	exited := make(chan struct{})
 	go func() {

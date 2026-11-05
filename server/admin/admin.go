@@ -10,14 +10,17 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/cache"
-	"github.com/ryanhaines/comic-reader/config"
-	"github.com/ryanhaines/comic-reader/match"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/cache"
+	"github.com/rthaines211/gutter-server/config"
+	"github.com/rthaines211/gutter-server/match"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 //go:embed static/*
 var staticFS embed.FS
+
+// Version is stamped at build time via -ldflags.
+var Version = "dev"
 
 //go:embed templates/*
 var templateFS embed.FS
@@ -126,6 +129,7 @@ type PageData struct {
 	SeriesCount   int
 	EndpointCount int
 	ReviewCount   int
+	MatchEnabled  bool
 	Uptime        string
 	Version       string
 	Content       interface{}
@@ -237,7 +241,7 @@ func New(st *store.Store, c *cache.LRU, comicDirs []string, coverDir string, dbP
 // Register mounts the admin routes onto the given mux.
 func (a *Admin) Register(root *http.ServeMux) {
 	mux := http.NewServeMux()
-	root.Handle("/_admin/", a.requireAuth(mux))
+	root.Handle("/_admin/", mux)
 	staticSub, _ := fs.Sub(staticFS, "static")
 	mux.Handle("GET /_admin/static/", http.StripPrefix("/_admin/static/", http.FileServer(http.FS(staticSub))))
 	mux.HandleFunc("GET /_admin/library/{id}", a.handleSeries)
@@ -294,8 +298,9 @@ func (a *Admin) baseData(activePage string) PageData {
 		SeriesCount:   len(allSeries),
 		EndpointCount: a.RouteCount,
 		ReviewCount:   a.reviewCount(),
+		MatchEnabled:  a.Match != nil,
 		Uptime:        formatDuration(time.Since(a.StartedAt)),
-		Version:       "0.4.2",
+		Version:       Version,
 	}
 }
 

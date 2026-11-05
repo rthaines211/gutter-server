@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // seedComicForServer inserts a minimal series + issue + reading_progress row,

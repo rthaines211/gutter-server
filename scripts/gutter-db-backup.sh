@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+#
+# gutter-db-backup.sh — consistent snapshot of the Gutter database.
+#
+# For a DB on a Docker named volume (e.g. because SQLite WAL corrupts over some
+# bind mounts), out of reach of host-level backups. This dumps a consistent copy
+# to OUT_DIR on the host. For the shipped compose.yaml (./data bind mount), run
+# from the compose dir:  VOLUME=$PWD/data scripts/gutter-db-backup.sh
+# (Docker accepts a host path for -v). Settings (env): VOLUME (default gutter-db), DB_FILE
+# (default gutter.db), STACK_DIR (default $HOME/gutter), OUT_DIR (default
+# $VOLUME/db-backups for a host path, else $STACK_DIR/data/db-backups), NAME, KEEP.
+#
+# Uses sqlite3's online .backup API, not cp: it takes the right locks, so it is
+# safe against a running server and never captures a torn WAL.
+set -euo pipefail
+export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
+
+STACK_DIR="${STACK_DIR:-$HOME/gutter}"
+VOLUME="${VOLUME:-gutter-db}"
+DB_FILE="${DB_FILE:-gutter.db}"
+# A host-path VOLUME (the ./data bind mount) keeps its snapshots beside the DB.
+case "$VOLUME" in
+  /* | .*) OUT_DIR="${OUT_DIR:-$VOLUME/db-backups}" ;;
+  *) OUT_DIR="${OUT_DIR:-$STACK_DIR/data/db-backups}" ;;
+esac
+KEEP="${KEEP:-7}"
+# deploy.sh passes NAME=predeploy so its snapshots prune separately from nightly ones.
+NAME="${NAME:-gutter}"
+
+mkdir -p "$OUT_DIR"
+STAMP="$(date +%Y%m%d-%H%M%S)"
+
+docker run --rm \
+  -v "$VOLUME":/db:ro \
+  -v "$OUT_DIR":/out \
+  alpine:3 sh -c "
+    [ -f /db/$DB_FILE ] || { echo \"ERROR: /db/$DB_FILE not found in VOLUME=$VOLUME (set VOLUME to the volume name or the host data dir)\" >&2; exit 1; } &&
+    apk add -q --no-cache sqlite &&
+    sqlite3 /db/$DB_FILE \".backup /out/$NAME-$STAMP.db\" &&
+    r=\$(sqlite3 /out/$NAME-$STAMP.db 'PRAGMA integrity_check;' | head -1) &&
+    echo \$r && [ \"\$r\" = ok ]
+  "
+
+# Refuse to advertise a corrupt snapshot: if integrity failed the run already
+# exited non-zero above, so reaching here means the copy verified clean.
+echo "$(date -Iseconds) backup ok: $OUT_DIR/$NAME-$STAMP.db"
+
+# Keep the newest $KEEP, drop the rest.
+ls -1t "$OUT_DIR"/"$NAME"-[0-9]*.db 2>/dev/null | tail -n +$((KEEP + 1)) | while read -r old; do
+  rm -f "$old" && echo "  pruned $(basename "$old")"
+done

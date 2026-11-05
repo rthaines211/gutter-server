@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 type DetectedChapter struct {

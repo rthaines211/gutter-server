@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/metadata"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/metadata"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // writeTestCbz builds a minimal CBZ at path. Duplicated from archive/writer_test.go

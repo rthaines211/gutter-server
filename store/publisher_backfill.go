@@ -3,7 +3,7 @@ package store
 import (
 	"database/sql"
 
-	"github.com/ryanhaines/comic-reader/metadata"
+	"github.com/rthaines211/gutter-server/metadata"
 )
 
 // backfillPublishers rewrites stored publisher values to their canonical

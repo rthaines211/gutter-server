@@ -1,6 +1,6 @@
 package match
 
-import "github.com/ryanhaines/comic-reader/store"
+import "github.com/rthaines211/gutter-server/store"
 
 func firstNonEmpty(a, b string) string {
 	if a != "" {

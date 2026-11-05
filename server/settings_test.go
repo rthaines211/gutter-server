@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 func TestGetSettingsDefault(t *testing.T) {

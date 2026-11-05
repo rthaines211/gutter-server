@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ryanhaines/comic-reader/metadata"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/metadata"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 var validFormats = map[string]bool{

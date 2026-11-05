@@ -11,7 +11,7 @@ import (
 )
 
 func TestRemoteCommandNoReaderIs409(t *testing.T) {
-	srv := &Server{}
+	srv := &Server{AuthOff: true}
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/remote/command",
 		strings.NewReader(`{"type":"next"}`))
@@ -27,7 +27,7 @@ func TestRemoteCommandNoReaderIs409(t *testing.T) {
 }
 
 func TestRemoteCommandRejectsUnknownType(t *testing.T) {
-	srv := &Server{}
+	srv := &Server{AuthOff: true}
 	srv.hub().subscribe("reader") // a reader exists, so 409 is not the reason
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/remote/command",
@@ -39,7 +39,7 @@ func TestRemoteCommandRejectsUnknownType(t *testing.T) {
 }
 
 func TestRemoteCommandWithReaderIs204(t *testing.T) {
-	srv := &Server{}
+	srv := &Server{AuthOff: true}
 	ch, _ := srv.hub().subscribe("reader")
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/remote/command",
@@ -59,7 +59,7 @@ func TestRemoteCommandWithReaderIs204(t *testing.T) {
 }
 
 func TestRemoteStateIsStoredAndReplayed(t *testing.T) {
-	srv := &Server{}
+	srv := &Server{AuthOff: true}
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/remote/state",
 		strings.NewReader(`{"comicId":"abc","page":4,"totalPages":20,"readingMode":"page"}`))
@@ -75,7 +75,7 @@ func TestRemoteStateIsStoredAndReplayed(t *testing.T) {
 // A pretty-printed body must not reach the SSE writer with newlines in it:
 // `data: %s\n\n` would split one snapshot into several broken frames.
 func TestRemoteStateIsCompactedBeforeStorage(t *testing.T) {
-	srv := &Server{}
+	srv := &Server{AuthOff: true}
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/remote/state",
 		strings.NewReader("{\n  \"comicId\": \"abc\",\n  \"page\": 4\n}"))
@@ -93,7 +93,7 @@ func TestRemoteStateIsCompactedBeforeStorage(t *testing.T) {
 }
 
 func TestRemoteEventsRejectsBadRole(t *testing.T) {
-	srv := &Server{}
+	srv := &Server{AuthOff: true}
 	rec := httptest.NewRecorder()
 	srv.HandleRemoteEvents(rec, httptest.NewRequest("GET", "/remote/events?role=wizard", nil))
 	if rec.Code != http.StatusBadRequest {
@@ -104,7 +104,7 @@ func TestRemoteEventsRejectsBadRole(t *testing.T) {
 // Drives the real router so the SSE framing, headers and flushing are all
 // exercised end to end over a live connection.
 func TestRemoteEventsStreamsCommands(t *testing.T) {
-	srv := &Server{}
+	srv := &Server{AuthOff: true}
 	ts := httptest.NewServer(srv.NewRouter())
 	defer ts.Close()
 
@@ -149,7 +149,7 @@ func TestRemoteEventsStreamsCommands(t *testing.T) {
 }
 
 func TestRemoteCommandRejectsNegativePage(t *testing.T) {
-	srv := &Server{}
+	srv := &Server{AuthOff: true}
 	srv.hub().subscribe("reader")
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/remote/command",
@@ -165,7 +165,7 @@ func TestRemoteCommandRejectsNegativePage(t *testing.T) {
 // phone's snapshot stream permanently. Reject at the door.
 func TestRemoteStateRejectsNonObjectBodies(t *testing.T) {
 	for _, body := range []string{`"x"`, `[1,2]`, `42`, `null`, `true`} {
-		srv := &Server{}
+		srv := &Server{AuthOff: true}
 		rec := httptest.NewRecorder()
 		req := httptest.NewRequest("POST", "/remote/state", strings.NewReader(body))
 		srv.HandleRemoteState(rec, req)

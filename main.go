@@ -8,26 +8,27 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
-	"github.com/ryanhaines/comic-reader/archive"
-	"github.com/ryanhaines/comic-reader/arcsync"
-	"github.com/ryanhaines/comic-reader/cache"
-	"github.com/ryanhaines/comic-reader/comicvine"
-	"github.com/ryanhaines/comic-reader/config"
-	"github.com/ryanhaines/comic-reader/creators"
-	"github.com/ryanhaines/comic-reader/enrichment"
-	"github.com/ryanhaines/comic-reader/match"
-	"github.com/ryanhaines/comic-reader/match/gcd"
-	"github.com/ryanhaines/comic-reader/match/localcv"
-	"github.com/ryanhaines/comic-reader/metron"
-	"github.com/ryanhaines/comic-reader/notify"
-	"github.com/ryanhaines/comic-reader/push"
-	"github.com/ryanhaines/comic-reader/server"
-	"github.com/ryanhaines/comic-reader/server/admin"
-	"github.com/ryanhaines/comic-reader/store"
-	"github.com/ryanhaines/comic-reader/tagger"
-	"github.com/ryanhaines/comic-reader/writeback"
+	"github.com/rthaines211/gutter-server/archive"
+	"github.com/rthaines211/gutter-server/arcsync"
+	"github.com/rthaines211/gutter-server/cache"
+	"github.com/rthaines211/gutter-server/comicvine"
+	"github.com/rthaines211/gutter-server/config"
+	"github.com/rthaines211/gutter-server/creators"
+	"github.com/rthaines211/gutter-server/enrichment"
+	"github.com/rthaines211/gutter-server/match"
+	"github.com/rthaines211/gutter-server/match/gcd"
+	"github.com/rthaines211/gutter-server/match/localcv"
+	"github.com/rthaines211/gutter-server/metron"
+	"github.com/rthaines211/gutter-server/notify"
+	"github.com/rthaines211/gutter-server/push"
+	"github.com/rthaines211/gutter-server/server"
+	"github.com/rthaines211/gutter-server/server/admin"
+	"github.com/rthaines211/gutter-server/store"
+	"github.com/rthaines211/gutter-server/tagger"
+	"github.com/rthaines211/gutter-server/writeback"
 )
 
 func main() {
@@ -37,6 +38,12 @@ func main() {
 	cfg, err := config.Load(*configPath)
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
+	}
+	if err := cfg.Validate(); err != nil {
+		log.Fatal(err)
+	}
+	if cfg.AuthOff {
+		log.Printf("WARNING: auth is OFF (GUTTER_AUTH=off) — anyone who can reach this port can read and change your library")
 	}
 
 	// Skip directory validation — NAS may be slow/offline.
@@ -65,6 +72,7 @@ func main() {
 	srv := server.NewServer(cfg.ComicDirs, db, cache.NewLRU(cfg.CacheMaxItems))
 	srv.CoverDir = cfg.CoverDir
 	srv.BubblesDir = cfg.BubblesDir
+	srv.Password, srv.APIKey, srv.AuthOff = cfg.Password, cfg.APIKey, cfg.AuthOff
 
 	// One shared client so enrichment and live matching draw on the same
 	// 180/hr budget — two limiters would overrun ComicVine's real limit.
@@ -80,7 +88,7 @@ func main() {
 		srv.Enrichment = worker
 		log.Printf("enrichment: worker started (cache: %s)", enrichCacheDir)
 	} else {
-		log.Printf("enrichment: disabled (no COMICVINE_API_KEY / comicvine_api_key)")
+		log.Printf("enrichment: disabled (no GUTTER_COMICVINE_KEY / comicvine_api_key)")
 	}
 
 	if cfg.MylarURL != "" {
@@ -184,10 +192,13 @@ func main() {
 	adm.Config = cfg
 	adm.Match = matchRunner
 
+	// Local, not cfg: a console Save must never persist the read-only probe.
 	if len(cfg.ComicDirs) == 0 {
 		log.Printf("writeback: worker not started (no comic_dirs configured)")
 	} else if cfg.WritebackDisabled {
-		log.Printf("writeback: worker not started (writeback_disabled: true)")
+		log.Printf("writeback: off (opt in with GUTTER_WRITEBACK=true and a read-write mount)")
+	} else if !writeback.Writable(cfg.ComicDirs) {
+		log.Printf("writeback: off (library is read-only)")
 	} else {
 		wbWorker := writeback.New(db, cfg.ComicDirs, cfg.CoverDir, 500*time.Millisecond, adm)
 		wbWorker.Start()
@@ -215,7 +226,15 @@ func main() {
 		log.Printf("push: enabled (key %s)", cfg.Push.KeyID)
 	}
 	log.Printf("pipeline: auto_pipeline=%v scan_interval=%s", cfg.AutoPipeline, cfg.ScanInterval)
+	// One guard for every caller: the scheduler, the first-run scan and
+	// POST /library/refresh (srv.Rescan) all route through scanFn.
+	var scanMu sync.Mutex
 	scanFn := func() {
+		if !scanMu.TryLock() {
+			log.Printf("scan: already running, skipped")
+			return
+		}
+		defer scanMu.Unlock()
 		log.Println("scheduled scan starting...")
 		if cfg.AutoPipeline {
 			// Spans scan + pipeline so status polls never see an idle gap between them.
@@ -245,13 +264,16 @@ func main() {
 		})
 	}
 
-	// Skip scan on startup — let the scheduled scanner handle it.
-	// The external drive can block the entire process with uninterruptible I/O.
 	count, _ := db.SeriesCount()
-	log.Printf("serving %d series from database (scan skipped, use POST /library/refresh or wait for scheduled scan)", count)
+	if count == 0 {
+		log.Printf("first run: empty library, scanning now")
+		go scanFn()
+	} else {
+		log.Printf("serving %d series from database (scan skipped, use POST /library/refresh or wait for scheduled scan)", count)
+	}
 
 	addr := fmt.Sprintf(":%d", cfg.Port)
-	log.Printf("comic-reader starting on %s", addr)
+	log.Printf("gutter starting on %s", addr)
 	log.Printf("serving comics from: %v", cfg.ComicDirs)
 
 	httpServer := &http.Server{

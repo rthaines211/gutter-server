@@ -1,4 +1,4 @@
-module github.com/ryanhaines/comic-reader
+module github.com/rthaines211/gutter-server
 
 go 1.26.2
 

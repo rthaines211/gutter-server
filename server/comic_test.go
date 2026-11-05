@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/cache"
-	"github.com/ryanhaines/comic-reader/metadata"
+	"github.com/rthaines211/gutter-server/cache"
+	"github.com/rthaines211/gutter-server/metadata"
 )
 
 func setupComicTest(t *testing.T) (*Server, string) {

@@ -1,9 +1,12 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 
 	"gopkg.in/yaml.v3"
@@ -35,9 +38,10 @@ type Config struct {
 
 	// ponytail: one flag, not a general read-only mode. The writeback worker is
 	// the only file mutator that starts on its own; organize and the tagger both
-	// need a deliberate trigger. Set on the native test instance so it can never
-	// write into the real library while production holds the same files.
-	WritebackDisabled bool `yaml:"writeback_disabled,omitempty"`
+	// need a deliberate trigger. Defaults to true (off): writing into the
+	// library is opt-in via GUTTER_WRITEBACK=true or writeback_disabled: false.
+	// No omitempty, so a saved false survives the true default.
+	WritebackDisabled bool `yaml:"writeback_disabled"`
 
 	// AutoPipeline runs match → confirm → enrich → writeback → organize on
 	// the series each scheduled scan found new or changed. Off by default:
@@ -48,12 +52,17 @@ type Config struct {
 	// dev/staging) means push is off everywhere.
 	Push PushConfig `yaml:"push,omitempty"`
 
-	// AdminPassword turns on HTTP Basic auth for /_admin (any username).
-	// Empty turns it off: the console is open, as it was before.
-	AdminPassword string `yaml:"admin_password,omitempty"`
+	// Password is the Basic-auth password (any username); APIKey is the
+	// bearer token the app uses. AuthOff (GUTTER_AUTH=off) is env-only.
+	Password string `yaml:"password,omitempty"`
+	APIKey   string `yaml:"api_key,omitempty"`
+	AuthOff  bool   `yaml:"-"`
 
 	mu   sync.RWMutex
 	path string
+	// fileVals undoes env overrides, keyed by env var: Save applies them to
+	// the copy it writes so env values (secrets included) never reach the file.
+	fileVals map[string]func(*Config)
 }
 
 // PushConfig is the APNs token-auth key plus the shared secret the app sends
@@ -73,7 +82,7 @@ func (c *Config) PushEnabled() bool {
 
 // PushKeyConfigured reports whether there's enough to send pushes. The host
 // watcher checks this, not PushEnabled: it never registers devices, and the
-// secret may live only in the container's PUSH_REGISTER_SECRET.
+// secret may live only in the container's GUTTER_PUSH_REGISTER_SECRET.
 func (c *Config) PushKeyConfigured() bool {
 	p := c.Push
 	return p.KeyPath != "" && p.KeyID != "" && p.TeamID != "" && p.BundleID != ""
@@ -91,22 +100,28 @@ func (c *Config) PushKeyPath() string {
 	return filepath.Join(c.Dir(), c.Push.KeyPath)
 }
 
+// Load reads path if it exists (a missing file is fine: defaults plus env
+// apply, and path is kept so Save creates it).
 func Load(path string) (*Config, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("reading config: %w", err)
-	}
 	cfg := &Config{
-		Port:                8080,
+		Port:                8081,
 		CacheMaxItems:       500,
-		DBPath:              "comic-reader.db",
+		DBPath:              "gutter.db",
 		CBRCacheMaxGB:       2,
 		TaggerPauseBetweenS: 30,
 		TaggerMinPages:      60,
+		WritebackDisabled:   true, // set before Unmarshal: yaml.v3 only overwrites keys present
 		path:                path,
+		fileVals:            map[string]func(*Config){},
 	}
-	if err := yaml.Unmarshal(data, cfg); err != nil {
-		return nil, fmt.Errorf("parsing config: %w", err)
+	data, err := os.ReadFile(path)
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return nil, fmt.Errorf("reading config: %w", err)
+	}
+	if err == nil {
+		if err := yaml.Unmarshal(data, cfg); err != nil {
+			return nil, fmt.Errorf("parsing config: %w", err)
+		}
 	}
 	// YAML can't tell a missing key from an empty one, so "off" is the
 	// explicit manual-only value and empty means the default.
@@ -117,36 +132,72 @@ func Load(path string) (*Config, error) {
 		cfg.CoverDir = filepath.Join(filepath.Dir(cfg.DBPath), "covers")
 	}
 	if len(cfg.ComicDirs) == 0 {
-		return nil, fmt.Errorf("comic_dirs must not be empty")
+		cfg.ComicDirs = []string{"/comics"}
 	}
-	if key := os.Getenv("COMICVINE_API_KEY"); key != "" {
-		cfg.ComicVineAPIKey = key
+	for env, field := range map[string]func(*Config) *string{
+		"GUTTER_PASSWORD":             func(c *Config) *string { return &c.Password },
+		"GUTTER_API_KEY":              func(c *Config) *string { return &c.APIKey },
+		"GUTTER_COMICVINE_KEY":        func(c *Config) *string { return &c.ComicVineAPIKey },
+		"GUTTER_METRON_USER":          func(c *Config) *string { return &c.MetronUser },
+		"GUTTER_METRON_PASS":          func(c *Config) *string { return &c.MetronPass },
+		"GUTTER_SCAN_INTERVAL":        func(c *Config) *string { return &c.ScanInterval },
+		"GUTTER_MYLAR_URL":            func(c *Config) *string { return &c.MylarURL },
+		"GUTTER_PUSH_REGISTER_SECRET": func(c *Config) *string { return &c.Push.RegisterSecret },
+	} {
+		if v := os.Getenv(env); v != "" {
+			fileVal := *field(cfg)
+			cfg.fileVals[env] = func(c *Config) { *field(c) = fileVal }
+			*field(cfg) = v
+		}
 	}
-	if v := os.Getenv("MYLAR_URL"); v != "" {
-		cfg.MylarURL = v
-	}
-	if v := os.Getenv("METRON_USER"); v != "" {
-		cfg.MetronUser = v
-	}
-	if v := os.Getenv("METRON_PASS"); v != "" {
-		cfg.MetronPass = v
-	}
-	if v := os.Getenv("PUSH_REGISTER_SECRET"); v != "" {
-		cfg.Push.RegisterSecret = v
+	cfg.AuthOff = os.Getenv("GUTTER_AUTH") == "off"
+	if v, err := strconv.ParseBool(os.Getenv("GUTTER_WRITEBACK")); err == nil {
+		fileVal := cfg.WritebackDisabled
+		cfg.fileVals["GUTTER_WRITEBACK"] = func(c *Config) { c.WritebackDisabled = fileVal }
+		cfg.WritebackDisabled = !v // applies both ways; unset/unparsable leaves the file value
 	}
 	return cfg, nil
+}
+
+// Validate refuses to run without a password unless auth is explicitly off.
+func (c *Config) Validate() error {
+	if c.Password == "" && !c.AuthOff {
+		return errors.New("GUTTER_PASSWORD is required (set it, or GUTTER_AUTH=off to run without auth)")
+	}
+	if c.Password == "change-me" && !c.AuthOff {
+		return errors.New("GUTTER_PASSWORD is still the compose.yaml placeholder \"change-me\": set a real password")
+	}
+	return nil
 }
 
 func (c *Config) Save() error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	// Marshal the Config itself so a new field can't be forgotten here
-	// (bubbles_dir was); mu and path are unexported and skipped.
+	// (bubbles_dir was); mu and path are unexported and skipped. The round
+	// trip makes a lock-free copy to put the file's values back into, so env
+	// overrides (secrets, scan interval, writeback) are never persisted.
 	data, err := yaml.Marshal(c)
 	if err != nil {
 		return fmt.Errorf("marshaling config: %w", err)
 	}
-	return os.WriteFile(c.path, data, 0644)
+	var out Config
+	if err := yaml.Unmarshal(data, &out); err != nil {
+		return fmt.Errorf("copying config: %w", err)
+	}
+	for _, restore := range c.fileVals {
+		restore(&out)
+	}
+	if data, err = yaml.Marshal(&out); err != nil {
+		return fmt.Errorf("marshaling config: %w", err)
+	}
+	if err := os.MkdirAll(filepath.Dir(c.path), 0o755); err != nil {
+		return fmt.Errorf("creating config dir: %w", err)
+	}
+	if err := os.WriteFile(c.path, data, 0o600); err != nil {
+		return err
+	}
+	return os.Chmod(c.path, 0o600) // WriteFile keeps an existing file's mode
 }
 
 func (c *Config) AddDir(dir string) error {
@@ -182,6 +233,8 @@ func (c *Config) RemoveDir(dir string) error {
 func (c *Config) SetScanInterval(interval string) error {
 	c.mu.Lock()
 	c.ScanInterval = interval
+	// Persist the console's choice; GUTTER_SCAN_INTERVAL still wins at next start.
+	delete(c.fileVals, "GUTTER_SCAN_INTERVAL")
 	c.mu.Unlock()
 	return c.Save()
 }

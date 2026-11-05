@@ -7,13 +7,13 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/ryanhaines/comic-reader/cache"
-	"github.com/ryanhaines/comic-reader/creators"
-	"github.com/ryanhaines/comic-reader/enrichment"
-	"github.com/ryanhaines/comic-reader/notify"
-	"github.com/ryanhaines/comic-reader/ocr"
-	"github.com/ryanhaines/comic-reader/server/admin"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/cache"
+	"github.com/rthaines211/gutter-server/creators"
+	"github.com/rthaines211/gutter-server/enrichment"
+	"github.com/rthaines211/gutter-server/notify"
+	"github.com/rthaines211/gutter-server/ocr"
+	"github.com/rthaines211/gutter-server/server/admin"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 type Server struct {
@@ -34,7 +34,13 @@ type Server struct {
 
 	// PushSecret gates /devices; "" means push is off and they 404.
 	PushSecret string
-	Notifier   *notify.Notifier
+
+	// Password (Basic) and APIKey (Bearer) gate every endpoint but /healthz;
+	// AuthOff (GUTTER_AUTH=off) disables the gate.
+	Password string
+	APIKey   string
+	AuthOff  bool
+	Notifier *notify.Notifier
 
 	// lastPageServed is the unix-nano time the reader last served a comic page;
 	// the tagger worker yields while this is recent.
@@ -80,6 +86,7 @@ type route struct {
 // guard test diffs it against RouteRegistry.
 func (s *Server) routes() []route {
 	return []route{
+		{"GET /{$}", s.HandleStatusPage},
 		{"GET /healthz", s.HandleHealthz},
 		{"GET /browse", s.HandleBrowse},
 		// {"GET /search", s.HandleSearch}, // TODO: not yet implemented
@@ -174,7 +181,11 @@ func (s *Server) NewRouter() http.Handler {
 		s.Admin.Register(mux)
 		s.Admin.RegisterAPI(mux)
 	}
-	handler := corsMiddleware(mux)
+	var handler http.Handler = mux
+	if !s.AuthOff {
+		handler = RequireAuth(handler, s.Password, s.APIKey)
+	}
+	handler = corsMiddleware(handler)
 	if s.Admin != nil && s.Admin.RequestLog != nil {
 		handler = s.Admin.RequestLog.Middleware(handler)
 	}
@@ -185,7 +196,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Device-ID")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Device-ID, Authorization")
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
 			return

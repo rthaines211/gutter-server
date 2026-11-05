@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ryanhaines/comic-reader/match"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/match"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // ReviewItem is one series awaiting a human match decision, with the matcher's
@@ -39,8 +39,8 @@ type VolumeHit struct {
 	CoverURL   string `json:"cover_url"`
 }
 
-// RegisterAPI mounts the iPad review deck's JSON routes. Public like the rest
-// of the app API: deliberately not behind requireAuth.
+// RegisterAPI mounts the iPad review deck's JSON routes; the global
+// RequireAuth middleware covers them.
 func (a *Admin) RegisterAPI(mux *http.ServeMux) {
 	mux.HandleFunc("GET /review", a.apiReviewList)
 	mux.HandleFunc("GET /review/search", a.apiReviewSearch)

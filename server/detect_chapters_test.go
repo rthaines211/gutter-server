@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/metadata"
+	"github.com/rthaines211/gutter-server/metadata"
 )
 
 func TestDetectChaptersStructural(t *testing.T) {

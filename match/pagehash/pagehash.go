@@ -8,7 +8,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/ryanhaines/comic-reader/archive"
+	"github.com/rthaines211/gutter-server/archive"
 )
 
 var ErrNoPages = errors.New("pagehash: archive has no pages")

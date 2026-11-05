@@ -4,7 +4,7 @@ package server
 import (
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/metadata"
+	"github.com/rthaines211/gutter-server/metadata"
 )
 
 func TestDetectRegistrySingleActive(t *testing.T) {

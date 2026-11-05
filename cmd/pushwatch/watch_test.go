@@ -21,7 +21,7 @@ func TestStepSequence(t *testing.T) {
 			titles = append(titles, msg.Title)
 		}
 	}
-	want := []string{"", "", "comic-reader is down", "", "comic-reader is back", ""}
+	want := []string{"", "", "gutter is down", "", "gutter is back", ""}
 	if strings.Join(titles, "|") != strings.Join(want, "|") {
 		t.Fatalf("got %q", titles)
 	}

@@ -15,8 +15,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/cache"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/cache"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 var bubblePages = [][]byte{[]byte("page-zero"), []byte("page-one"), []byte("page-two")}

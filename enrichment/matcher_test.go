@@ -3,7 +3,7 @@ package enrichment
 import (
 	"testing"
 
-	"github.com/ryanhaines/comic-reader/comicvine"
+	"github.com/rthaines211/gutter-server/comicvine"
 )
 
 func TestNormalizeName(t *testing.T) {

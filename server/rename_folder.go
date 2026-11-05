@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ryanhaines/comic-reader/rename"
-	"github.com/ryanhaines/comic-reader/store"
+	"github.com/rthaines211/gutter-server/rename"
+	"github.com/rthaines211/gutter-server/store"
 )
 
 // HandleRenameFolder handles PUT /series/{id}/rename-folder.

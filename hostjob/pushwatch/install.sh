@@ -1,6 +1,6 @@
 #!/bin/bash
 # Installs the push watcher on the host Mac: every 10 minutes it checks /healthz
-# and pushes "comic-reader is down"/"is back" to the iPad. Re-runnable. Needs Go
+# and pushes "gutter is down"/"is back" to the iPad. Re-runnable. Needs Go
 # here, or a binary built elsewhere with:
 #   CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o comic-pushwatch ./cmd/pushwatch
 # copied to ~/bin/comic-pushwatch (then run this with --no-build).
