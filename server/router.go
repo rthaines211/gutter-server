@@ -86,6 +86,7 @@ type route struct {
 // guard test diffs it against RouteRegistry.
 func (s *Server) routes() []route {
 	return []route{
+		{"GET /{$}", s.HandleStatusPage},
 		{"GET /healthz", s.HandleHealthz},
 		{"GET /browse", s.HandleBrowse},
 		// {"GET /search", s.HandleSearch}, // TODO: not yet implemented

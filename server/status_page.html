@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gutter</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #14151a; color: #e8e8ec; font: 16px/1.5 -apple-system, system-ui, sans-serif; }
+  main { width: min(92vw, 480px); background: #1c1d24; border: 1px solid #2c2e38; border-radius: 12px; padding: 28px; }
+  h1 { margin: 0 0 4px; font-size: 20px; letter-spacing: .12em; }
+  .sub { color: #8b8d99; font-size: 13px; margin-bottom: 20px; }
+  p { margin: 10px 0; }
+  code { background: #101116; padding: 2px 6px; border-radius: 4px; word-break: break-all; }
+  .muted { color: #8b8d99; }
+</style>
+</head>
+<body>
+<main>
+  <h1>GUTTER</h1>
+  <div class="sub">Comic server {{.Version}}</div>
+  {{if .Scanning}}
+  <p id="scan">Scanning… {{.Scanned}} of {{.Total}} series</p>
+  {{else}}
+  <p id="scan">Ready · {{.Count}} series</p>
+  {{end}}
+  <p>Add this server in Gutter: <code>{{.URL}}</code></p>
+  <p class="muted">{{if .Match}}Matching: on{{else}}Matching: off{{end}}</p>
+</main>
+{{if .Scanning}}
+<script>
+  const t = setInterval(async () => {
+    try {
+      const s = await (await fetch('/library/refresh/status')).json();
+      if (!s.is_scanning) { clearInterval(t); location.reload(); return; }
+      document.getElementById('scan').textContent = 'Scanning… ' + s.scanned + ' of ' + s.total + ' series';
+    } catch (e) {}
+  }, 2000);
+</script>
+{{end}}
+</body>
+</html>

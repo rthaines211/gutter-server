@@ -19,6 +19,9 @@ import (
 //go:embed static/*
 var staticFS embed.FS
 
+// Version is stamped at build time via -ldflags.
+var Version = "dev"
+
 //go:embed templates/*
 var templateFS embed.FS
 
@@ -297,7 +300,7 @@ func (a *Admin) baseData(activePage string) PageData {
 		ReviewCount:   a.reviewCount(),
 		MatchEnabled:  a.Match != nil,
 		Uptime:        formatDuration(time.Since(a.StartedAt)),
-		Version:       "0.4.2",
+		Version:       Version,
 	}
 }
 

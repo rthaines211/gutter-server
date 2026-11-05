@@ -256,10 +256,13 @@ func main() {
 		})
 	}
 
-	// Skip scan on startup — let the scheduled scanner handle it.
-	// The external drive can block the entire process with uninterruptible I/O.
 	count, _ := db.SeriesCount()
-	log.Printf("serving %d series from database (scan skipped, use POST /library/refresh or wait for scheduled scan)", count)
+	if count == 0 {
+		log.Printf("first run: empty library, scanning now")
+		go scanFn()
+	} else {
+		log.Printf("serving %d series from database (scan skipped, use POST /library/refresh or wait for scheduled scan)", count)
+	}
 
 	addr := fmt.Sprintf(":%d", cfg.Port)
 	log.Printf("gutter starting on %s", addr)
