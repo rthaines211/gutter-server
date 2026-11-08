@@ -8,12 +8,16 @@ import (
 
 // RequireAuth gates every request except GET /healthz and OPTIONS. It accepts
 // HTTP Basic (any username, password must match) or, when apiKey is set,
-// "Authorization: Bearer <apiKey>".
+// "Authorization: Bearer <apiKey>". /kosync/ paths use kosyncAuth instead.
 func RequireAuth(next http.Handler, password, apiKey string) http.Handler {
 	eq := func(a, b string) bool { return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1 }
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodOptions || (r.Method == http.MethodGet && r.URL.Path == "/healthz") {
 			next.ServeHTTP(w, r)
+			return
+		}
+		if strings.HasPrefix(r.URL.Path, kosyncPrefix) {
+			kosyncAuth(w, r, next, password, apiKey) // KOReader's x-auth-* headers
 			return
 		}
 		ok := false
