@@ -169,6 +169,22 @@ func (s *Server) routes() []route {
 		{"GET /creators/issues/{comicId}", s.HandleCreatorIssueCredits},
 		{"GET /creators/{personId}", s.HandleCreatorDetail},
 		{"GET /creators", s.HandleCreatorsList},
+		// OPDS 1.2 catalog + OPDS-PSE (opds.go)
+		{"GET /opds", s.HandleOPDSRoot},
+		{"GET /opds/{$}", s.HandleOPDSRoot},
+		{"GET /opds/opensearch.xml", s.HandleOPDSOpenSearch},
+		{"GET /opds/search", s.HandleOPDSSearch},
+		{"GET /opds/series", s.HandleOPDSSeriesList},
+		{"GET /opds/series/{id}", s.HandleOPDSSeries},
+		{"GET /opds/recent", s.HandleOPDSRecent},
+		{"GET /opds/reading", s.HandleOPDSReading},
+		{"GET /opds/download/{id}", s.HandleOPDSDownload},
+		// KOReader sync server (kosync_server.go)
+		{"GET /kosync/healthcheck", s.HandleKosyncHealthcheck},
+		{"POST /kosync/users/create", s.HandleKosyncCreateUser},
+		{"GET /kosync/users/auth", s.HandleKosyncAuth},
+		{"PUT /kosync/syncs/progress", s.HandleKosyncPutProgress},
+		{"GET /kosync/syncs/progress/{document}", s.HandleKosyncGetProgress},
 	}
 }
 

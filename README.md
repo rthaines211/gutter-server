@@ -30,6 +30,7 @@ Your library is mounted read-only, so Gutter never changes your files.
 
 - [Configuration reference](docs/CONFIG.md)
 - [Remote access](docs/REMOTE-ACCESS.md)
+- [OPDS and KOReader sync](docs/OPDS-KOREADER.md)
 
 ## License
 
