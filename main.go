@@ -47,6 +47,17 @@ func main() {
 			log.Fatal(err)
 		}
 		cfg.ComicDirs = []string{dir}
+		// Launched by the Mac app: exit when it does (a crash or force quit
+		// would otherwise leave us holding the port; the sandbox stops the
+		// relaunched app from signalling an orphan).
+		go func() {
+			for range time.Tick(2 * time.Second) {
+				if os.Getppid() == 1 {
+					log.Print("macbridge: parent app exited, stopping")
+					os.Exit(0)
+				}
+			}
+		}()
 	}
 	if err := cfg.Validate(); err != nil {
 		log.Fatal(err)

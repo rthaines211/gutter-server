@@ -48,29 +48,24 @@ import (
 	"unsafe"
 )
 
-// Open reads bookmark data from file, resolves it and starts access.
-// It tries a security-scoped (app-scope) resolve first, then a plain
-// (implicit-scope) one.
+// Open reads bookmark data from file, resolves it and starts access. The app
+// passes a plain (implicit-scope) bookmark made while it held access: an
+// app-scoped bookmark only resolves in the process that made it.
 func Open(file string) (string, error) {
 	data, err := os.ReadFile(file)
 	if err != nil || len(data) == 0 {
 		return "", fmt.Errorf("macbridge: reading %s: %v", file, err)
 	}
-	var errs []string
-	for _, scoped := range []C.int{1, 0} {
-		var started C.int
-		var cerr *C.char
-		p := C.gutter_resolve(unsafe.Pointer(&data[0]), C.long(len(data)), scoped, &started, &cerr)
-		if p == nil {
-			errs = append(errs, fmt.Sprintf("scoped=%d: %s", scoped, C.GoString(cerr)))
-			C.free(unsafe.Pointer(cerr))
-			continue
-		}
-		path := C.GoString(p)
-		C.free(unsafe.Pointer(p))
-		_, rerr := os.ReadDir(path)
-		log.Printf("macbridge: resolved %s (scoped=%d, startAccessing=%v, readDir err=%v, earlier: %v)", path, scoped, started != 0, rerr, errs)
-		return path, nil
+	var started C.int
+	var cerr *C.char
+	p := C.gutter_resolve(unsafe.Pointer(&data[0]), C.long(len(data)), 0, &started, &cerr)
+	if p == nil {
+		defer C.free(unsafe.Pointer(cerr))
+		return "", fmt.Errorf("macbridge: resolve failed: %s", C.GoString(cerr))
 	}
-	return "", fmt.Errorf("macbridge: resolve failed: %v", errs)
+	path := C.GoString(p)
+	C.free(unsafe.Pointer(p))
+	_, rerr := os.ReadDir(path)
+	log.Printf("macbridge: resolved %s (startAccessing=%v, readDir err=%v)", path, started != 0, rerr)
+	return path, nil
 }
