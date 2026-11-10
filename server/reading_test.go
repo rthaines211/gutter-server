@@ -201,3 +201,24 @@ func TestPutReadingChaptersPresencePreserves(t *testing.T) {
 		t.Fatalf("explicit [] should clear, got %d", count())
 	}
 }
+
+// The app sends a bookmark "id" as a string (a client-side timestamp). The
+// server must not reject the whole progress write because of it.
+func TestPutReadingAcceptsClientBookmarkID(t *testing.T) {
+	srv := newTestServer(t)
+	body := `{"current_page": 5, "total_pages": 20, "bookmarks": [
+		{"id": "1731111111111", "comic_id": "x", "page_num": 3, "created_at": "2026-11-09T12:00:00.000Z"}
+	]}`
+	id := pathToID("test.cbz")
+	req := httptest.NewRequest("PUT", "/reading/"+id, bytes.NewBufferString(body))
+	req.SetPathValue("id", id)
+	w := httptest.NewRecorder()
+	srv.HandlePutReading(w, req)
+	if w.Code != 200 {
+		t.Fatalf("PUT expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+	bms, err := srv.Store.ListBookmarks(id)
+	if err != nil || len(bms) != 1 || bms[0].PageNum != 3 {
+		t.Fatalf("expected bookmark on page 3, got %+v (err %v)", bms, err)
+	}
+}
