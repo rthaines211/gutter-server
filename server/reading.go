@@ -22,9 +22,14 @@ type ReadingListResponse struct {
 }
 
 type PutReadingRequest struct {
-	CurrentPage int              `json:"current_page"`
-	TotalPages  int              `json:"total_pages"`
-	Bookmarks   []store.Bookmark `json:"bookmarks,omitempty"`
+	CurrentPage int `json:"current_page"`
+	TotalPages  int `json:"total_pages"`
+	// Only page and note are read. The app also sends its own "id" (a string)
+	// and "created_at"; decoding those into store.Bookmark failed the whole PUT.
+	Bookmarks []struct {
+		PageNum int    `json:"page_num"`
+		Note    string `json:"note"`
+	} `json:"bookmarks,omitempty"`
 	// Pointer so we can tell "field omitted" (nil → leave chapters untouched)
 	// from "field present, empty" ([] → clear all). A routine progress save
 	// omits chapters; only an explicit chapter write replaces the set.
@@ -130,8 +135,7 @@ func (s *Server) HandlePutReading(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for _, bm := range req.Bookmarks {
-		bm.ComicID = id
-		if err := s.Store.AddBookmark(bm); err != nil {
+		if err := s.Store.AddBookmark(store.Bookmark{ComicID: id, PageNum: bm.PageNum, Note: bm.Note}); err != nil {
 			writeInternalError(w, err)
 			return
 		}
