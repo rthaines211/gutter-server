@@ -92,3 +92,23 @@ func TestStatusPageScanningBeforeTotal(t *testing.T) {
 		t.Error("poller must also skip counts while total is 0")
 	}
 }
+
+func TestStatusPageGetTheApp(t *testing.T) {
+	body := statusBody(t, newTestServer(t), "/")
+	for _, want := range []string{
+		"Get the app",
+		`href="https://apps.apple.com/us/app/gutter-comic-reader/id6831270255"`,
+		`href="https://getgutter.app"`,
+		"<svg ",
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("body missing %q", want)
+		}
+	}
+	// Self-contained: nothing on the page loads from the network.
+	for _, bad := range []string{"<img", "<link", "src=", "url(", "@import"} {
+		if strings.Contains(body, bad) {
+			t.Errorf("body must not contain %q", bad)
+		}
+	}
+}
