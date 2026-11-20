@@ -4,11 +4,15 @@ import (
 	"time"
 )
 
-// pageTables lists every table that stores a page index, with its column.
-var pageTables = []struct{ table, col string }{
-	{"bookmarks", "page_num"},
-	{"chapters", "page_num"},
-	{"page_flags", "page"},
+// pageTables lists every table that stores a page index, with its column and
+// its write-time column (unix: integer seconds; else CURRENT_TIMESTAMP text).
+var pageTables = []struct {
+	table, col, tcol string
+	unix             bool
+}{
+	{"bookmarks", "page_num", "created_at", false},
+	{"chapters", "page_num", "created_at", false},
+	{"page_flags", "page", "flagged_at", true},
 }
 
 // PageDataComicIDs returns every comic id that has a stored page number.
@@ -36,7 +40,7 @@ func (s *Store) PageDataComicIDs() ([]string, error) {
 // RemapPages moves a comic's stored page numbers to new positions, m[old] = new,
 // in one transaction. Values outside 0..len(m)-1 are left alone. Progress on
 // the last page or beyond stays put (finished stays finished), and progress
-// written at or after before (already in the new order) is skipped; remapped
+// rows written at or after before (already in the new order) are skipped; remapped
 // progress gets a fresh updated_at so /sync sends it. doneKey is recorded in
 // migrations in the same transaction; a comic whose doneKey exists is skipped,
 // so a retried pass never remaps a comic twice.
@@ -52,9 +56,10 @@ func (s *Store) RemapPages(comicID string, m []int, before time.Time, doneKey st
 		return err
 	}
 
+	beforeText := before.UTC().Format("2006-01-02 15:04:05")
 	var cur int
 	err = tx.QueryRow(`SELECT current_page FROM reading_progress WHERE comic_id=? AND updated_at < ?`,
-		comicID, before.UTC().Format("2006-01-02 15:04:05")).Scan(&cur)
+		comicID, beforeText).Scan(&cur)
 	if err == nil && cur >= 0 && cur < len(m)-1 {
 		if _, err := tx.Exec(`UPDATE reading_progress SET current_page=?, updated_at=CURRENT_TIMESTAMP WHERE comic_id=?`,
 			m[cur], comicID); err != nil {
@@ -63,7 +68,12 @@ func (s *Store) RemapPages(comicID string, m []int, before time.Time, doneKey st
 	}
 
 	for _, t := range pageTables {
-		rows, err := tx.Query(`SELECT rowid, `+t.col+` FROM `+t.table+` WHERE comic_id=?`, comicID)
+		var cutoff any = beforeText
+		if t.unix {
+			cutoff = before.Unix()
+		}
+		rows, err := tx.Query(`SELECT rowid, `+t.col+` FROM `+t.table+` WHERE comic_id=? AND (`+t.tcol+` IS NULL OR `+t.tcol+` < ?)`,
+			comicID, cutoff)
 		if err != nil {
 			return err
 		}
@@ -96,6 +106,18 @@ func (s *Store) RemapPages(comicID string, m []int, before time.Time, doneKey st
 		return err
 	}
 	return tx.Commit()
+}
+
+// MigrationStart returns when the named migration first started, recording
+// now on its first call, so retries on later starts share one cutover.
+func (s *Store) MigrationStart(name string) (time.Time, error) {
+	key := name + ":start"
+	if _, err := s.db.Exec(`INSERT OR IGNORE INTO migrations (name, done_at) VALUES (?, ?)`, key, time.Now().Unix()); err != nil {
+		return time.Time{}, err
+	}
+	var at int64
+	err := s.db.QueryRow(`SELECT done_at FROM migrations WHERE name=?`, key).Scan(&at)
+	return time.Unix(at, 0), err
 }
 
 // MigrationDone reports whether the named one-time migration has finished.

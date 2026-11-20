@@ -140,3 +140,23 @@ func TestMigrationFlag(t *testing.T) {
 		t.Fatal("flag not set")
 	}
 }
+
+// Rows written after the cutover are already in the new order.
+func TestRemapPagesSkipsNewerRows(t *testing.T) {
+	s := newTestStore(t)
+	s.AddChapter(Chapter{ComicID: "c1", PageNum: 0, Title: "A"})
+	s.AddBookmark(Bookmark{ComicID: "c1", PageNum: 0, Note: "A"})
+	s.FlagPage("c1", 0, "A", "")
+	if err := s.RemapPages("c1", []int{1, 0}, time.Now().Add(-time.Hour), "t:c1"); err != nil {
+		t.Fatal(err)
+	}
+	for _, q := range []string{
+		`SELECT page_num, title FROM chapters WHERE comic_id=?`,
+		`SELECT page_num, note FROM bookmarks WHERE comic_id=?`,
+		`SELECT page, reason FROM page_flags WHERE comic_id=?`,
+	} {
+		if got := pagesOf(t, s, q, "c1"); !reflect.DeepEqual(got, map[int]string{0: "A"}) {
+			t.Errorf("%s: %v, want page 0 kept", q, got)
+		}
+	}
+}

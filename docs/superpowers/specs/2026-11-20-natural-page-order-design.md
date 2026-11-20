@@ -62,3 +62,11 @@ does, without losing anyone's place.
   other start-up work in `main.go`).
 - Test shape: a unit test that fails on byte order (`page2` vs `page10`,
   case), and a store test for the remap including the last-page rule.
+
+<!-- flow-decisions:start -->
+## Decisions
+
+| Who | Stage | Decision | Why | Confirmed |
+|---|---|---|---|---|
+| You | Brainstorm | Natural, case-insensitive page sort; remap stored page numbers via a one-time background startup pass; auto-invalidate CBR cache; iPad downloads re-downloaded by hand | Server is public, so every install must self-fix; only a few comics locally carry page data | ✓ |
+<!-- flow-decisions:end -->

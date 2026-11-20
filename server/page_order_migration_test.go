@@ -84,3 +84,55 @@ func TestMigratePageOrderInterruptedRetry(t *testing.T) {
 		t.Fatalf("retry remapped a finished comic again: page %d, want 2", p.CurrentPage)
 	}
 }
+
+// An unmounted library must not mark the pass done.
+func TestMigratePageOrderLibraryOffline(t *testing.T) {
+	srv := newTestServer(t)
+	root := srv.ComicDirs[0]
+	writeTestZip(t, filepath.Join(root, "S/a.cbz"), "page1.jpg", "page10.jpg", "page11.jpg", "page2.jpg")
+	a := pathToID("S/a.cbz")
+	srv.Store.UpsertProgress(store.Progress{ComicID: a, CurrentPage: 1, TotalPages: 4})
+	srv.Store.DB().Exec(`UPDATE reading_progress SET updated_at = datetime('now', '-1 hour')`)
+
+	srv.ComicDirs = []string{filepath.Join(t.TempDir(), "unmounted")}
+	srv.MigratePageOrder()
+	if done, _ := srv.Store.MigrationDone(pageOrderMigration); done {
+		t.Fatal("pass marked done while the library was offline")
+	}
+	srv.ComicDirs = []string{root}
+	srv.MigratePageOrder()
+	if p, _ := srv.Store.GetProgress(a); p.CurrentPage != 2 {
+		t.Fatalf("remap after the library came back: page %d, want 2", p.CurrentPage)
+	}
+}
+
+// A retried pass keeps the first pass's cutover: progress the app wrote in the
+// new order after the first start is not remapped.
+func TestMigratePageOrderCutoverFixed(t *testing.T) {
+	srv := newTestServer(t)
+	root := srv.ComicDirs[0]
+	cbz := filepath.Join(root, "S/c.cbz")
+	os.MkdirAll(filepath.Dir(cbz), 0o755)
+	os.WriteFile(cbz, []byte("not a zip"), 0o644) // unreadable on the first pass
+	c := pathToID("S/c.cbz")
+	srv.Store.UpsertProgress(store.Progress{ComicID: c, CurrentPage: 1, TotalPages: 4})
+	srv.Store.DB().Exec(`UPDATE reading_progress SET updated_at = datetime('now', '-2 hour')`)
+
+	srv.MigratePageOrder()
+	if done, _ := srv.Store.MigrationDone(pageOrderMigration); done {
+		t.Fatal("pass marked done with an unreadable comic")
+	}
+	// Pretend the first pass ran an hour ago; the app then wrote page 1 in
+	// the new order, and the file became readable.
+	srv.Store.DB().Exec(`UPDATE migrations SET done_at = done_at - 3600 WHERE name = ?`, pageOrderMigration+":start")
+	srv.Store.DB().Exec(`UPDATE reading_progress SET updated_at = datetime('now', '-30 minutes')`)
+	writeTestZip(t, cbz, "page1.jpg", "page10.jpg", "page11.jpg", "page2.jpg")
+
+	srv.MigratePageOrder()
+	if p, _ := srv.Store.GetProgress(c); p.CurrentPage != 1 {
+		t.Fatalf("progress written after the cutover was remapped to %d", p.CurrentPage)
+	}
+	if done, _ := srv.Store.MigrationDone(pageOrderMigration); !done {
+		t.Fatal("pass should finish once every comic is readable")
+	}
+}
