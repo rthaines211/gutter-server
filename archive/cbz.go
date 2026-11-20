@@ -48,7 +48,7 @@ func OpenCBZ(path string) (*CBZReader, error) {
 		}
 	}
 	sort.Slice(r.pages, func(i, j int) bool {
-		return r.pages[i].Name < r.pages[j].Name
+		return PageLess(r.pages[i].Name, r.pages[j].Name)
 	})
 	return r, nil
 }

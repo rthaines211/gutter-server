@@ -57,8 +57,8 @@ func openExtractedCBR(archivePath string) (*ExtractedCBRReader, error) {
 	extractDir := filepath.Join(cbrCacheDir, cacheKey)
 	markerFile := filepath.Join(extractDir, ".extracted")
 
-	// Check if already extracted
-	if _, err := os.Stat(markerFile); err == nil {
+	// Check if already extracted (in the current page order)
+	if extractionCurrent(extractDir) {
 		// Touch marker to update access time for LRU tracking
 		now := time.Now()
 		os.Chtimes(markerFile, now, now)
@@ -151,7 +151,7 @@ func extractCBRToDisk(archivePath, extractDir string) error {
 		}
 	}
 
-	sort.Slice(pages, func(i, j int) bool { return pages[i].name < pages[j].name })
+	sort.Slice(pages, func(i, j int) bool { return PageLess(pages[i].name, pages[j].name) })
 	for i, p := range pages {
 		final := filepath.Join(extractDir, fmt.Sprintf("page_%04d%s", i, strings.ToLower(filepath.Ext(p.name))))
 		if err := os.Rename(p.tmp, final); err != nil {
@@ -161,7 +161,7 @@ func extractCBRToDisk(archivePath, extractDir string) error {
 
 	// Write marker file to signal extraction is complete
 	marker := filepath.Join(extractDir, ".extracted")
-	if err := os.WriteFile(marker, []byte("ok"), 0644); err != nil {
+	if err := os.WriteFile(marker, []byte(extractMarkerVersion), 0644); err != nil {
 		return err
 	}
 
@@ -202,7 +202,7 @@ func loadExtractedCBR(extractDir string) (*ExtractedCBRReader, error) {
 	}
 
 	sort.Slice(r.pages, func(i, j int) bool {
-		return r.pages[i].name < r.pages[j].name
+		return PageLess(r.pages[i].name, r.pages[j].name)
 	})
 
 	return r, nil
@@ -328,4 +328,22 @@ func dirSize(path string) int64 {
 		}
 	}
 	return total
+}
+
+// extractMarkerVersion is the .extracted marker's content. Bump it when the
+// extracted layout or page order changes so old extractions are redone.
+const extractMarkerVersion = "v2-natural"
+
+// extractionCurrent reports whether extractDir holds a finished extraction of
+// the current version. An older one is removed so it can be redone cleanly.
+func extractionCurrent(extractDir string) bool {
+	b, err := os.ReadFile(filepath.Join(extractDir, ".extracted"))
+	if err != nil {
+		return false
+	}
+	if string(b) != extractMarkerVersion {
+		os.RemoveAll(extractDir)
+		return false
+	}
+	return true
 }

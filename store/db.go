@@ -67,6 +67,12 @@ func placeholders(n int) string {
 
 func migrate(db *sql.DB) error {
 	schema := `
+	-- One-time data migrations that finished (e.g. natural_page_order).
+	CREATE TABLE IF NOT EXISTS migrations (
+		name    TEXT PRIMARY KEY,
+		done_at INTEGER NOT NULL
+	);
+
 	CREATE TABLE IF NOT EXISTS reading_progress (
 		comic_id     TEXT PRIMARY KEY,
 		current_page INTEGER NOT NULL,

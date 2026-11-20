@@ -264,6 +264,9 @@ func main() {
 		})
 	}
 
+	// One-time: move stored page numbers to natural page order (no-op once done).
+	go srv.MigratePageOrder()
+
 	count, _ := db.SeriesCount()
 	if count == 0 {
 		log.Printf("first run: empty library, scanning now")
