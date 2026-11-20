@@ -37,13 +37,20 @@ func (s *Store) PageDataComicIDs() ([]string, error) {
 // in one transaction. Values outside 0..len(m)-1 are left alone. Progress on
 // the last page or beyond stays put (finished stays finished), and progress
 // written at or after before (already in the new order) is skipped; remapped
-// progress gets a fresh updated_at so /sync sends it.
-func (s *Store) RemapPages(comicID string, m []int, before time.Time) error {
+// progress gets a fresh updated_at so /sync sends it. doneKey is recorded in
+// migrations in the same transaction; a comic whose doneKey exists is skipped,
+// so a retried pass never remaps a comic twice.
+func (s *Store) RemapPages(comicID string, m []int, before time.Time, doneKey string) error {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
+
+	var done int
+	if err := tx.QueryRow(`SELECT COUNT(*) FROM migrations WHERE name=?`, doneKey).Scan(&done); err != nil || done > 0 {
+		return err
+	}
 
 	var cur int
 	err = tx.QueryRow(`SELECT current_page FROM reading_progress WHERE comic_id=? AND updated_at < ?`,
@@ -84,6 +91,9 @@ func (s *Store) RemapPages(comicID string, m []int, before time.Time) error {
 		if _, err := tx.Exec(`UPDATE `+t.table+` SET `+t.col+`=-1-`+t.col+` WHERE comic_id=? AND `+t.col+`<0`, comicID); err != nil {
 			return err
 		}
+	}
+	if _, err := tx.Exec(`INSERT INTO migrations (name, done_at) VALUES (?, ?)`, doneKey, time.Now().Unix()); err != nil {
+		return err
 	}
 	return tx.Commit()
 }

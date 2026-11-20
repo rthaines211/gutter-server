@@ -21,7 +21,7 @@ func progressPage(t *testing.T, s *Store, id string) int {
 func TestRemapPagesProgress(t *testing.T) {
 	s := newTestStore(t)
 	s.UpsertProgress(Progress{ComicID: "c1", CurrentPage: 1, TotalPages: 3})
-	if err := s.RemapPages("c1", []int{0, 2, 1}, later); err != nil {
+	if err := s.RemapPages("c1", []int{0, 2, 1}, later, "t:c1"); err != nil {
 		t.Fatal(err)
 	}
 	if got := progressPage(t, s, "c1"); got != 2 {
@@ -34,7 +34,7 @@ func TestRemapPagesLastPageKept(t *testing.T) {
 	s.UpsertProgress(Progress{ComicID: "c1", CurrentPage: 2, TotalPages: 3})
 	s.UpsertProgress(Progress{ComicID: "c2", CurrentPage: 3, TotalPages: 3})
 	for _, id := range []string{"c1", "c2"} {
-		if err := s.RemapPages(id, []int{2, 1, 0}, later); err != nil {
+		if err := s.RemapPages(id, []int{2, 1, 0}, later, "t:"+id); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -49,7 +49,7 @@ func TestRemapPagesLastPageKept(t *testing.T) {
 func TestRemapPagesSkipsNewerProgress(t *testing.T) {
 	s := newTestStore(t)
 	s.UpsertProgress(Progress{ComicID: "c1", CurrentPage: 1, TotalPages: 3})
-	if err := s.RemapPages("c1", []int{0, 2, 1}, time.Now().Add(-time.Hour)); err != nil {
+	if err := s.RemapPages("c1", []int{0, 2, 1}, time.Now().Add(-time.Hour), "t:c1"); err != nil {
 		t.Fatal(err)
 	}
 	if got := progressPage(t, s, "c1"); got != 1 {
@@ -86,7 +86,7 @@ func TestRemapPagesUniqueSwap(t *testing.T) {
 	}
 	s.db.Exec(`INSERT INTO bookmarks (comic_id, page_num, note) VALUES ('c1', 0, 'A'), ('c1', 1, 'B')`)
 
-	if err := s.RemapPages("c1", []int{1, 2, 0}, later); err != nil {
+	if err := s.RemapPages("c1", []int{1, 2, 0}, later, "t:c1"); err != nil {
 		t.Fatal(err)
 	}
 	want := map[int]string{1: "A", 2: "B", 0: "C"}
@@ -104,7 +104,7 @@ func TestRemapPagesUniqueSwap(t *testing.T) {
 func TestRemapPagesOutOfRangeKept(t *testing.T) {
 	s := newTestStore(t)
 	s.AddChapter(Chapter{ComicID: "c1", PageNum: 7, Title: "X"})
-	if err := s.RemapPages("c1", []int{2, 1, 0}, later); err != nil {
+	if err := s.RemapPages("c1", []int{2, 1, 0}, later, "t:c1"); err != nil {
 		t.Fatal(err)
 	}
 	if got := pagesOf(t, s, `SELECT page_num, title FROM chapters WHERE comic_id=?`, "c1"); !reflect.DeepEqual(got, map[int]string{7: "X"}) {
