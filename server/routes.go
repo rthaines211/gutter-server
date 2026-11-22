@@ -64,6 +64,8 @@ var RouteRegistry = []RouteInfo{
 	{"GET", "/queues", "Queues", "List reading queues"},
 	{"PUT", "/queues/{id}", "Queues", "Create or update a reading queue"},
 	{"DELETE", "/queues/{id}", "Queues", "Delete a reading queue"},
+	{"PUT", "/arcs/{id}", "Arcs", "Create or replace a user-made reading order"},
+	{"DELETE", "/arcs/{id}", "Arcs", "Delete a user-made reading order"},
 	{"GET", "/smart-filters", "Smart Filters", "List all smart filters"},
 	{"POST", "/smart-filters", "Smart Filters", "Create a smart filter"},
 	{"GET", "/smart-filters/{id}/series", "Smart Filters", "Get series matching a smart filter"},

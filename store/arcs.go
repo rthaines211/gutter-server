@@ -316,3 +316,61 @@ func (s *Store) ListArcIssueIDs(arcID string) ([]string, error) {
 	}
 	return ids, rows.Err()
 }
+
+// ErrNotUserArc: the id belongs to an imported (Mylar/ComicVine) arc, which
+// the app may not edit or delete.
+var ErrNotUserArc = errors.New("arc is not user-made")
+
+// UpsertUserArc creates or replaces a user-made arc (source 'user') with the
+// given issues in order. Duplicate issue ids keep their first position.
+func (s *Store) UpsertUserArc(id, name string, issueIDs []string) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var src string
+	err = tx.QueryRow(`SELECT source FROM story_arcs WHERE id = ?`, id).Scan(&src)
+	if err == nil && src != "user" {
+		return ErrNotUserArc
+	}
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return err
+	}
+	if _, err := tx.Exec(`
+		INSERT INTO story_arcs (id, name, total_issues, source, updated_at)
+		VALUES (?, ?, ?, 'user', CURRENT_TIMESTAMP)
+		ON CONFLICT(id) DO UPDATE SET name=excluded.name,
+			total_issues=excluded.total_issues, updated_at=CURRENT_TIMESTAMP`,
+		id, name, len(issueIDs)); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(`DELETE FROM story_arc_issues WHERE arc_id = ?`, id); err != nil {
+		return err
+	}
+	for pos, iid := range issueIDs {
+		if _, err := tx.Exec(
+			`INSERT OR IGNORE INTO story_arc_issues (arc_id, issue_id, position) VALUES (?, ?, ?)`,
+			id, iid, pos); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
+// DeleteUserArc deletes a user-made arc. Imported arcs are refused.
+func (s *Store) DeleteUserArc(id string) error {
+	var src string
+	err := s.db.QueryRow(`SELECT source FROM story_arcs WHERE id = ?`, id).Scan(&src)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if src != "user" {
+		return ErrNotUserArc
+	}
+	_, err = s.db.Exec(`DELETE FROM story_arcs WHERE id = ?`, id)
+	return err
+}
