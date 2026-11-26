@@ -81,9 +81,15 @@ page, then the original `.cbr` is deleted. Back up your library first.
 
 ## Upgrading
 
+Back up `/data` first (see Backups below), then:
+
 ```sh
 docker compose pull && docker compose up -d
 ```
+
+Read [CHANGELOG.md](../CHANGELOG.md) for what each release changes on first
+start. To stay on one release, set the image tag to its version (for
+example `ghcr.io/rthaines211/gutter-server:0.2.0`) instead of `latest`.
 
 ## Backups
 
