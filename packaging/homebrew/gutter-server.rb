@@ -1,8 +1,8 @@
 class GutterServer < Formula
   desc "Self-hosted comic library server for the Gutter reader"
   homepage "https://github.com/rthaines211/gutter-server"
-  url "https://github.com/rthaines211/gutter-server/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "8683299b4bd9ed8cdaaa82458568a41348840b93d17b294395ccef08864f7d11"
+  url "https://github.com/rthaines211/gutter-server/archive/refs/tags/v0.2.0.tar.gz"
+  sha256 "d30c2a91bda4f55542fc4cdcfd9954273e2746c678bc6a7dc6198b022c4e4d71"
   license "AGPL-3.0-only"
   head "https://github.com/rthaines211/gutter-server.git", branch: "main"
 
