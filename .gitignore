@@ -35,3 +35,6 @@ config.test.yaml
 
 # Claude Code local state (worktrees, session, settings)
 .claude/
+
+# Xcode per-user state (Mac app)
+xcuserdata/

@@ -18,6 +18,7 @@ import (
 	"github.com/rthaines211/gutter-server/config"
 	"github.com/rthaines211/gutter-server/creators"
 	"github.com/rthaines211/gutter-server/enrichment"
+	"github.com/rthaines211/gutter-server/macbridge"
 	"github.com/rthaines211/gutter-server/match"
 	"github.com/rthaines211/gutter-server/match/gcd"
 	"github.com/rthaines211/gutter-server/match/localcv"
@@ -33,11 +34,30 @@ import (
 
 func main() {
 	configPath := flag.String("config", "config.yaml", "path to config file")
+	bookmark := flag.String("bookmark", "", "macOS: file with bookmark data for the comics folder (sandboxed Mac app)")
 	flag.Parse()
 
 	cfg, err := config.Load(*configPath)
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
+	}
+	if *bookmark != "" {
+		dir, err := macbridge.Open(*bookmark)
+		if err != nil {
+			log.Fatal(err)
+		}
+		cfg.ComicDirs = []string{dir}
+		// Launched by the Mac app: exit when it does (a crash or force quit
+		// would otherwise leave us holding the port; the sandbox stops the
+		// relaunched app from signalling an orphan).
+		go func() {
+			for range time.Tick(2 * time.Second) {
+				if os.Getppid() == 1 {
+					log.Print("macbridge: parent app exited, stopping")
+					os.Exit(0)
+				}
+			}
+		}()
 	}
 	if err := cfg.Validate(); err != nil {
 		log.Fatal(err)
