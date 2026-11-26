@@ -33,8 +33,9 @@ To submit, fork it, copy `packaging/casaos/GutterServer/` to
 `Apps/GutterServer/`, run `./scripts/build_dist.sh`, and open a PR against
 `main` saying it is a new app and how it was tested.
 
-- The image is pinned to `0.1.0`. Bump `image`, `version` and `update_at`
-  after each release (v0.2.0 once it is tagged).
+- Submitted as IceWhaleTech/CasaOS-AppStore PR 1183. The image is pinned to
+  `0.2.0`; bump `image`, `version` and `update_at` after each release, here
+  and on the store.
 - Category must be one of the store's fixed list; `Media` fits.
 - Reviews are slow (months, by the store's own community pages). The BigBear
   store, preinstalled on CasaOS, is a faster second home and takes the same
@@ -52,7 +53,8 @@ brew install --build-from-source rthaines211/tap/gutter-server
 brew test gutter-server && brew audit --strict --new rthaines211/tap/gutter-server
 ```
 
-Then push the tap to `github.com/rthaines211/homebrew-tap`. Users install with:
+The tap is live at `github.com/rthaines211/homebrew-tap`; after each release,
+update the formula's `url` and `sha256` there and here. Users install with:
 
 ```sh
 brew install rthaines211/tap/gutter-server
