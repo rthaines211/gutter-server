@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>gutter-server</Name>
+  <Repository>ghcr.io/rthaines211/gutter-server:latest</Repository>
+  <Registry>https://github.com/rthaines211/gutter-server/pkgs/container/gutter-server</Registry>
+  <Network>bridge</Network>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Icon>https://raw.githubusercontent.com/rthaines211/gutter-server/main/packaging/icon.png</Icon>
+  <WebUI>http://[IP]:[PORT:8081]</WebUI>
+  <Overview>Self-hosted comic library server for the Gutter comic reader on iPad and iPhone.&#xD;
+&#xD;
+Point it at a folder of CBZ/CBR comics laid out as one folder per series. It scans them, serves pages and covers, and syncs reading progress between your devices. It also serves an OPDS catalog and KOReader sync.&#xD;
+&#xD;
+Set a password before the first start. Your library is mounted read-only by default, so Gutter never changes your files. Open the WebUI to watch the first scan, then add http://[your server]:8081 in the Gutter app.</Overview>
+  <Support>https://github.com/rthaines211/gutter-server/issues</Support>
+  <Project>https://github.com/rthaines211/gutter-server</Project>
+  <TemplateURL>https://raw.githubusercontent.com/rthaines211/gutter-server/main/templates/gutter-server.xml</TemplateURL>
+  <ReadMe>https://raw.githubusercontent.com/rthaines211/gutter-server/main/README.md</ReadMe>
+  <Category>MediaServer:Books Network:Web</Category>
+  <ExtraSearchTerms>comics comic cbz cbr reader ipad opds koreader gutter</ExtraSearchTerms>
+  <Changes>First Community Applications release.</Changes>
+  <License>AGPL-3.0</License>
+  <Config Name="WebUI" Target="8081" Default="8081" Mode="tcp" Description="Web status page, admin console and the API the Gutter app talks to." Type="Port" Display="always" Required="true" Mask="false">8081</Config>
+  <Config Name="Comics" Target="/comics" Default="/mnt/user/comics" Mode="ro" Description="Your comics: one folder per series, CBZ/CBR files inside. Read-only by default. Change to read/write only if you turn on writeback." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/comics</Config>
+  <Config Name="AppData" Target="/data" Default="/mnt/user/appdata/gutter-server" Mode="rw" Description="Database, covers, cache and the optional config.yaml." Type="Path" Display="advanced" Required="true" Mask="false">/mnt/user/appdata/gutter-server</Config>
+  <Config Name="Password" Target="GUTTER_PASSWORD" Default="" Mode="" Description="Required. Sign in with any username and this password, in the WebUI and in the Gutter app." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="API key" Target="GUTTER_API_KEY" Default="" Mode="" Description="Optional bearer token for scripts (Authorization: Bearer)." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
+  <Config Name="ComicVine API key" Target="GUTTER_COMICVINE_KEY" Default="" Mode="" Description="Optional. Adds live metadata lookups. See docs/CONFIG.md." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
+  <Config Name="Scan interval" Target="GUTTER_SCAN_INTERVAL" Default="30m" Mode="" Description="How often to rescan the library, like 30m or 6h. off means manual scans only." Type="Variable" Display="advanced" Required="false" Mask="false">30m</Config>
+  <Config Name="Writeback" Target="GUTTER_WRITEBACK" Default="false" Mode="" Description="true writes ComicInfo.xml into your files and converts CBR to CBZ. Also set the Comics path to read/write. Back up first." Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+</Container>
