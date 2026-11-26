@@ -55,7 +55,7 @@ struct MenuContent: View {
             Button("Stop") { server.stop() }
         }
         Button("Open Status Page") {
-            NSWorkspace.shared.open(URL(string: "http://127.0.0.1:\(server.port)/")!)
+            NSWorkspace.shared.open(URL(string: "http://127.0.0.1:\(server.activePort)/")!)
         }.disabled(server.state == .stopped)
         Button("Show Logs") { NSWorkspace.shared.open(server.logURL) }
         Button("Settings…") {
@@ -104,6 +104,10 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .frame(width: 480)
+        // The first start generates the password; show it if the field is still empty.
+        .onReceive(server.$state) { _ in
+            if password.isEmpty { password = Keychain.password ?? "" }
+        }
     }
 
     private func chooseFolder() {

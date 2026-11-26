@@ -13,7 +13,11 @@ final class Server: ObservableObject {
     @Published private(set) var folderPath: String?
     @Published private(set) var urls: [String] = [] // refreshed on each start
 
+    /// The port saved in Settings; takes effect on the next start.
     var port: Int { let p = UserDefaults.standard.integer(forKey: "port"); return p > 0 ? p : 8081 }
+    /// The port the running helper listens on. Settings writes `port` as you type,
+    /// so status polls and Open Status Page use this until the server restarts.
+    private(set) var activePort = 8081
     var hasFolder: Bool { UserDefaults.standard.data(forKey: Self.bookmarkKey) != nil }
 
     let support: URL
@@ -80,13 +84,15 @@ final class Server: ObservableObject {
             // while we hold access carries the grant (see gutter-mac-spike SPIKE.md).
             let bmFile = support.appendingPathComponent("folder.bookmark")
             try folder.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil).write(to: bmFile)
-            // ponytail: rewritten on every start, so edits the server saves to it are lost; merge if that matters.
+            // Only the keys the app owns are set; anything the status page saved stays.
+            activePort = port
             let cfg = support.appendingPathComponent("config.yaml")
-            try """
-            port: \(port)
-            db_path: "\(support.appendingPathComponent("gutter.db").path)"
-            writeback_disabled: true
-            """.write(to: cfg, atomically: true, encoding: .utf8)
+            let existing = try? String(contentsOf: cfg, encoding: .utf8)
+            try Self.mergeConfig(existing, setting: [
+                ("port", "\(activePort)"),
+                ("db_path", "\"\(support.appendingPathComponent("gutter.db").path)\""),
+                ("writeback_disabled", "true"),
+            ]).write(to: cfg, atomically: true, encoding: .utf8)
 
             let p = Process()
             p.executableURL = exe
@@ -102,8 +108,8 @@ final class Server: ObservableObject {
             try p.run()
             proc = p
             startedAt = Date()
-            urls = Self.lanURLs(port: port)
-            note("helper pid \(p.processIdentifier) on port \(port); addresses: \(urls.joined(separator: " "))")
+            urls = Self.lanURLs(port: activePort)
+            note("helper pid \(p.processIdentifier) on port \(activePort); addresses: \(urls.joined(separator: " "))")
             state = .starting
             detail = ""
             startPolling()
@@ -158,6 +164,22 @@ final class Server: ObservableObject {
         return u
     }
 
+    /// Sets top-level `key: value` lines in a flat YAML file, replacing a key's
+    /// line if present and appending it otherwise. Every other line is kept.
+    nonisolated static func mergeConfig(_ existing: String?, setting pairs: [(String, String)]) -> String {
+        var lines = (existing ?? "").components(separatedBy: "\n")
+        while lines.last == "" { lines.removeLast() }
+        for (key, value) in pairs {
+            let line = "\(key): \(value)"
+            if let i = lines.firstIndex(where: { $0.hasPrefix("\(key):") }) {
+                lines[i] = line
+            } else {
+                lines.append(line)
+            }
+        }
+        return lines.joined(separator: "\n") + "\n"
+    }
+
     // MARK: status
 
     private struct ScanStatus: Decodable { let is_scanning: Bool; let scanned: Int; let total: Int }
@@ -172,7 +194,7 @@ final class Server: ObservableObject {
 
     private func poll() async {
         guard proc != nil else { return }
-        var req = URLRequest(url: URL(string: "http://127.0.0.1:\(port)/library/refresh/status")!, timeoutInterval: 2)
+        var req = URLRequest(url: URL(string: "http://127.0.0.1:\(activePort)/library/refresh/status")!, timeoutInterval: 2)
         req.setValue("Basic " + Data("gutter:\(Keychain.password ?? "")".utf8).base64EncodedString(), forHTTPHeaderField: "Authorization")
         guard let (data, resp) = try? await URLSession.shared.data(for: req),
               (resp as? HTTPURLResponse)?.statusCode == 200,

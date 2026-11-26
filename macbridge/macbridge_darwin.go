@@ -8,7 +8,9 @@ package macbridge
 /*
 #cgo LDFLAGS: -framework CoreFoundation
 #include <CoreFoundation/CoreFoundation.h>
+#include <limits.h>
 #include <stdlib.h>
+#include <string.h>
 
 static char *cfstr(CFStringRef s) {
 	CFIndex n = CFStringGetMaximumSizeForEncoding(CFStringGetLength(s), kCFStringEncodingUTF8) + 1;
@@ -33,8 +35,12 @@ static char *gutter_resolve(const void *data, long len, int scoped, int *started
 		return NULL;
 	}
 	*started = CFURLStartAccessingSecurityScopedResource(url);
-	char *p = malloc(4096);
-	CFURLGetFileSystemRepresentation(url, true, (UInt8 *)p, 4096);
+	char *p = malloc(PATH_MAX);
+	if (!CFURLGetFileSystemRepresentation(url, true, (UInt8 *)p, PATH_MAX)) {
+		free(p);
+		*err = strdup("path too long or not a file URL");
+		return NULL;
+	}
 	// ponytail: url is leaked on purpose; access lasts for the process lifetime.
 	return p;
 }
