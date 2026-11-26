@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<CommunityApplications>
+  <Profile>
+Gutter Server is a self-hosted comic library server for the Gutter comic reader on iPad and iPhone. It scans a folder of CBZ/CBR comics (one folder per series), serves pages and covers, and syncs reading progress between devices. It also speaks OPDS and KOReader sync.
+
+Questions and bug reports go to the GitHub issues of this repository.
+  </Profile>
+  <Icon>https://raw.githubusercontent.com/rthaines211/gutter-server/main/packaging/icon.png</Icon>
+  <WebPage>https://github.com/rthaines211/gutter-server</WebPage>
+</CommunityApplications>
