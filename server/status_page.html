@@ -12,6 +12,10 @@
   p { margin: 10px 0; }
   code { background: #101116; padding: 2px 6px; border-radius: 4px; word-break: break-all; }
   .muted { color: #8b8d99; }
+  a { color: #9db4ff; }
+  .app { display: flex; gap: 16px; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #2c2e38; }
+  .app h2 { margin: 0; font-size: 15px; }
+  .app svg { flex: none; border-radius: 6px; }
 </style>
 </head>
 <body>
@@ -27,6 +31,15 @@
   {{end}}
   <p>Add this server in Gutter: <code>{{.URL}}</code></p>
   <p class="muted">{{if .Match}}Matching: on{{else}}Matching: off{{end}}</p>
+  <div class="app">
+    <div>
+      <h2>Get the app</h2>
+      <p>Gutter for iPhone and iPad reads this library.</p>
+      <p><a href="https://apps.apple.com/us/app/gutter-comic-reader/id6831270255">App Store</a> · <a href="https://getgutter.app">getgutter.app</a></p>
+    </div>
+    <!-- QR of the App Store URL above. Static: made once with CoreImage, checked with Vision. -->
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 41 41" width="132" height="132" shape-rendering="crispEdges" role="img" aria-label="QR code: Gutter on the App Store"><rect width="41" height="41" fill="#fff"/><path fill="#000" d="M4 4h7v1h-7zM13 4h2v1h-2zM17 4h1v1h-1zM22 4h4v1h-4zM27 4h1v1h-1zM30 4h7v1h-7zM4 5h1v1h-1zM10 5h1v1h-1zM15 5h1v1h-1zM17 5h3v1h-3zM22 5h1v1h-1zM24 5h3v1h-3zM28 5h1v1h-1zM30 5h1v1h-1zM36 5h1v1h-1zM4 6h1v1h-1zM6 6h3v1h-3zM10 6h1v1h-1zM12 6h2v1h-2zM17 6h1v1h-1zM19 6h1v1h-1zM22 6h6v1h-6zM30 6h1v1h-1zM32 6h3v1h-3zM36 6h1v1h-1zM4 7h1v1h-1zM6 7h3v1h-3zM10 7h1v1h-1zM12 7h1v1h-1zM15 7h2v1h-2zM18 7h7v1h-7zM26 7h3v1h-3zM30 7h1v1h-1zM32 7h3v1h-3zM36 7h1v1h-1zM4 8h1v1h-1zM6 8h3v1h-3zM10 8h1v1h-1zM12 8h1v1h-1zM16 8h2v1h-2zM19 8h1v1h-1zM21 8h2v1h-2zM25 8h1v1h-1zM27 8h1v1h-1zM30 8h1v1h-1zM32 8h3v1h-3zM36 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM12 9h1v1h-1zM14 9h7v1h-7zM25 9h1v1h-1zM28 9h1v1h-1zM30 9h1v1h-1zM36 9h1v1h-1zM4 10h7v1h-7zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM24 10h1v1h-1zM26 10h1v1h-1zM28 10h1v1h-1zM30 10h7v1h-7zM12 11h4v1h-4zM18 11h2v1h-2zM24 11h5v1h-5zM4 12h1v1h-1zM6 12h5v1h-5zM13 12h2v1h-2zM16 12h7v1h-7zM26 12h1v1h-1zM28 12h1v1h-1zM30 12h5v1h-5zM8 13h2v1h-2zM11 13h2v1h-2zM14 13h3v1h-3zM20 13h9v1h-9zM30 13h2v1h-2zM33 13h4v1h-4zM4 14h1v1h-1zM10 14h3v1h-3zM15 14h1v1h-1zM19 14h1v1h-1zM21 14h2v1h-2zM24 14h2v1h-2zM29 14h2v1h-2zM32 14h1v1h-1zM34 14h2v1h-2zM4 15h1v1h-1zM8 15h1v1h-1zM12 15h1v1h-1zM14 15h1v1h-1zM18 15h2v1h-2zM21 15h3v1h-3zM25 15h6v1h-6zM32 15h3v1h-3zM6 16h1v1h-1zM9 16h5v1h-5zM16 16h1v1h-1zM19 16h1v1h-1zM21 16h2v1h-2zM26 16h1v1h-1zM29 16h1v1h-1zM31 16h3v1h-3zM35 16h1v1h-1zM4 17h2v1h-2zM7 17h1v1h-1zM9 17h1v1h-1zM11 17h6v1h-6zM18 17h8v1h-8zM27 17h1v1h-1zM30 17h1v1h-1zM33 17h4v1h-4zM4 18h1v1h-1zM7 18h5v1h-5zM13 18h1v1h-1zM15 18h1v1h-1zM18 18h1v1h-1zM21 18h1v1h-1zM24 18h2v1h-2zM29 18h2v1h-2zM32 18h1v1h-1zM34 18h2v1h-2zM4 19h1v1h-1zM6 19h1v1h-1zM8 19h2v1h-2zM11 19h2v1h-2zM16 19h1v1h-1zM20 19h1v1h-1zM25 19h1v1h-1zM29 19h3v1h-3zM33 19h2v1h-2zM6 20h2v1h-2zM9 20h2v1h-2zM13 20h1v1h-1zM15 20h2v1h-2zM18 20h1v1h-1zM20 20h2v1h-2zM23 20h1v1h-1zM26 20h2v1h-2zM29 20h1v1h-1zM31 20h2v1h-2zM36 20h1v1h-1zM7 21h1v1h-1zM9 21h1v1h-1zM11 21h1v1h-1zM16 21h1v1h-1zM18 21h1v1h-1zM20 21h2v1h-2zM23 21h5v1h-5zM30 21h2v1h-2zM33 21h4v1h-4zM7 22h1v1h-1zM9 22h5v1h-5zM15 22h1v1h-1zM17 22h6v1h-6zM25 22h2v1h-2zM28 22h5v1h-5zM34 22h2v1h-2zM4 23h3v1h-3zM8 23h1v1h-1zM12 23h1v1h-1zM14 23h1v1h-1zM16 23h1v1h-1zM19 23h1v1h-1zM23 23h3v1h-3zM28 23h2v1h-2zM31 23h5v1h-5zM5 24h2v1h-2zM9 24h2v1h-2zM12 24h3v1h-3zM16 24h4v1h-4zM22 24h2v1h-2zM26 24h1v1h-1zM28 24h2v1h-2zM31 24h3v1h-3zM35 24h1v1h-1zM4 25h1v1h-1zM7 25h3v1h-3zM11 25h1v1h-1zM13 25h2v1h-2zM18 25h2v1h-2zM23 25h3v1h-3zM27 25h2v1h-2zM30 25h1v1h-1zM33 25h2v1h-2zM36 25h1v1h-1zM4 26h1v1h-1zM6 26h3v1h-3zM10 26h1v1h-1zM13 26h4v1h-4zM18 26h3v1h-3zM24 26h2v1h-2zM33 26h3v1h-3zM4 27h1v1h-1zM8 27h1v1h-1zM11 27h1v1h-1zM13 27h1v1h-1zM15 27h6v1h-6zM23 27h3v1h-3zM27 27h3v1h-3zM32 27h3v1h-3zM4 28h1v1h-1zM6 28h2v1h-2zM9 28h3v1h-3zM13 28h1v1h-1zM18 28h2v1h-2zM21 28h1v1h-1zM23 28h1v1h-1zM26 28h1v1h-1zM28 28h6v1h-6zM35 28h1v1h-1zM12 29h1v1h-1zM14 29h1v1h-1zM16 29h3v1h-3zM20 29h2v1h-2zM23 29h1v1h-1zM25 29h1v1h-1zM27 29h2v1h-2zM32 29h1v1h-1zM34 29h3v1h-3zM4 30h7v1h-7zM13 30h1v1h-1zM15 30h1v1h-1zM19 30h3v1h-3zM24 30h5v1h-5zM30 30h1v1h-1zM32 30h1v1h-1zM34 30h2v1h-2zM4 31h1v1h-1zM10 31h1v1h-1zM12 31h1v1h-1zM14 31h5v1h-5zM20 31h2v1h-2zM24 31h5v1h-5zM32 31h5v1h-5zM4 32h1v1h-1zM6 32h3v1h-3zM10 32h1v1h-1zM12 32h2v1h-2zM18 32h1v1h-1zM20 32h1v1h-1zM26 32h1v1h-1zM28 32h6v1h-6zM35 32h1v1h-1zM4 33h1v1h-1zM6 33h3v1h-3zM10 33h1v1h-1zM12 33h2v1h-2zM19 33h1v1h-1zM22 33h2v1h-2zM26 33h1v1h-1zM28 33h2v1h-2zM32 33h1v1h-1zM34 33h3v1h-3zM4 34h1v1h-1zM6 34h3v1h-3zM10 34h1v1h-1zM12 34h2v1h-2zM18 34h1v1h-1zM20 34h3v1h-3zM25 34h2v1h-2zM28 34h4v1h-4zM4 35h1v1h-1zM10 35h1v1h-1zM13 35h1v1h-1zM16 35h1v1h-1zM19 35h1v1h-1zM23 35h1v1h-1zM25 35h1v1h-1zM30 35h1v1h-1zM32 35h1v1h-1zM34 35h1v1h-1zM4 36h7v1h-7zM12 36h1v1h-1zM14 36h2v1h-2zM17 36h1v1h-1zM19 36h1v1h-1zM21 36h2v1h-2zM26 36h4v1h-4zM31 36h1v1h-1zM35 36h1v1h-1z"/></svg>
+  </div>
 </main>
 {{if .Scanning}}
 <script>

@@ -128,6 +128,8 @@ func (s *Server) routes() []route {
 		{"GET /queues", s.HandleListQueues},
 		{"PUT /queues/{id}", s.HandlePutQueue},
 		{"DELETE /queues/{id}", s.HandleDeleteQueue},
+		{"PUT /arcs/{id}", s.HandlePutUserArc},
+		{"DELETE /arcs/{id}", s.HandleDeleteUserArc},
 		// Smart filters
 		{"GET /smart-filters", s.HandleListSmartFilters},
 		{"POST /smart-filters", s.HandleCreateSmartFilter},

@@ -56,7 +56,7 @@ func openCBR(path string) (*CBRReader, error) {
 	}
 
 	sort.Slice(r.pages, func(i, j int) bool {
-		return r.pages[i].name < r.pages[j].name
+		return PageLess(r.pages[i].name, r.pages[j].name)
 	})
 
 	return r, nil

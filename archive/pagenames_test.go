@@ -12,7 +12,7 @@ func TestCBZPageNamesMatchOrder(t *testing.T) {
 		t.Fatalf("PageNames len %d != PageCount %d", len(names), r.PageCount())
 	}
 	for i := 1; i < len(names); i++ {
-		if names[i-1] > names[i] {
+		if PageLess(names[i], names[i-1]) {
 			t.Fatalf("PageNames not sorted at %d: %q > %q", i, names[i-1], names[i])
 		}
 	}
